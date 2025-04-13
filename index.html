@@ -3,448 +3,1382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rosette Symmetry (v1.10 - Edge Fix)</title> <!-- Version bump -->
+    <title>Rosette Symmetry (v1.12 - Elegant Light UI)</title>
 
-    <style>
-        /* CSS styles remain the same as v1.9 */
-        :root {
-            /* Color Palette */
-            --primary-color: #4a69bd; --primary-hover: #3b5bb5;
-            --secondary-color: #6c757d; --secondary-hover: #5a6268;
-            --success-color: #2ecc71; --success-hover: #28b463;
-            --danger-color: #e74c3c; --danger-hover: #c0392b;
-            --info-color: #3498db; --info-hover: #2980b9;
-            --warning-color: #f39c12; --warning-hover: #d35400;
-            --light-color: #f8f9fa; --dark-color: #343a40;
+<style>
+    /* --- UI Refinement & Light Mode Default --- */
+    :root {
+        /* Light Theme Palette (Default) */
+        --primary-color: #0d6efd; --primary-hover: #0b5ed7; --primary-active: #0a58ca;
+        --secondary-color: #6c757d; --secondary-hover: #5c636a; --secondary-active: #565e64;
+        --success-color: #198754; --success-hover: #157347; --success-active: #146c43;
+        --danger-color: #dc3545; --danger-hover: #bb2d3b; --danger-active: #b02a37;
+        --info-color: #0dcaf0; --info-hover: #0aa3c2; --info-active: #0996b5;
+        --warning-color: #ffc107; --warning-hover: #d39e00; --warning-active: #c69500;
+        --light-color: #f8f9fa; --dark-color: #212529;
 
-            --text-color: #333; --text-muted: #6c757d;
-            --bg-color: #f4f7f9; --card-bg: #ffffff;
-            --card-border: #e1e8ed; --canvas-border: #cddae3;
-            --input-border: #ced4da;
-            --input-focus-border: var(--primary-color);
-            --input-focus-shadow: rgba(74, 105, 189, 0.2);
+        --body-bg: #f8f9fa; --body-text: #343a40;
+        --card-bg: #ffffff; --card-border: #dee2e6;
+        --canvas-bg: #ffffff; --canvas-border: #ced4da;
+        --input-border: #ced4da;
+        --input-focus-border: var(--primary-color);
+        --input-focus-shadow: rgba(13, 110, 253, 0.25); /* Primary color alpha */
+        --text-muted: #6c757d;
+        --heading-color: #212529;
 
-            --hover-bg: #e9ecef;
-            --selected-bg: rgba(74, 105, 189, 0.1);
-            --selected-border: rgba(74, 105, 189, 0.3);
-            --disabled-opacity: 0.5;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.07);
+        --hover-bg: #e9ecef;
+        --selected-bg: rgba(13, 110, 253, 0.1); /* Primary color alpha */
+        --selected-border: rgba(13, 110, 253, 0.3);
+        --disabled-opacity: 0.65;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.07);
+        --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
 
-            /* Guide Line Colors */
-            --grid-slice-color: #aab7c4;
-            --grid-reflect-line-color: #e74c3c;
+        /* Guide Line Colors */
+        --grid-slice-color: #adb5bd;
+        --grid-reflect-line-color: #fd7e14; /* Orange for contrast */
 
-            /* Layout */
-            --canvas-size: 600px;
-            --controls-width: 220px;
-            --border-radius: 6px;
-            --spacing: 1rem;
-        }
+        /* Layout */
+        --canvas-size: 600px;
+        --controls-width: 240px; /* Slightly wider */
+        --border-radius: 0.5rem; /* 8px - softer corners */
+        --spacing: 1rem;
+        --font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        --transition-speed: 0.2s;
+    }
 
-        *, *::before, *::after { box-sizing: border-box; }
+    /* --- Dark Theme Overrides --- */
+    body.dark-mode {
+        --primary-color: #4dabf7; --primary-hover: #74c0fc; --primary-active: #a5d8ff;
+        --secondary-color: #adb5bd; --secondary-hover: #ced4da; --secondary-active: #dee2e6;
+        --success-color: #40c057; --success-hover: #69db7c; --success-active: #94f7ab;
+        --danger-color: #fa5252; --danger-hover: #ff8787; --danger-active: #ffa8a8;
+        --info-color: #3bc9db; --info-hover: #66d9e8; --info-active: #99e9f2;
+        --warning-color: #fcc419; --warning-hover: #ffd868; --warning-active: #ffe09c;
+        --light-color: #343a40; --dark-color: #f1f3f5;
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            display: flex; flex-direction: column; align-items: center;
-            background-color: var(--bg-color); color: var(--text-color);
-            margin: 0; padding: calc(var(--spacing) * 1.5); min-height: 100vh;
-            font-size: 15px; line-height: 1.6;
-        }
+        --body-bg: #1a1a1a; --body-text: #e9ecef;
+        --card-bg: #2c2c2e; --card-border: #444;
+        --canvas-bg: #ffffff; /* Keep canvas white */
+        --canvas-border: #555;
+        --input-border: #555;
+        --input-focus-border: var(--primary-color);
+        --input-focus-shadow: rgba(77, 171, 247, 0.3); /* Dark primary alpha */
+        --text-muted: #a0a3a8;
+        --heading-color: #f8f9fa;
 
-        .app-container { width: 100%; max-width: calc(var(--canvas-size) + (2 * var(--controls-width)) + (4 * var(--spacing))); display: flex; flex-wrap: wrap; justify-content: center; gap: var(--spacing); }
-        header { width: 100%; text-align: center; margin-bottom: var(--spacing); }
-        h1 { margin-top: 0; margin-bottom: 0.25rem; font-weight: 600; color: var(--dark-color); font-size: 1.8rem; }
-        h2 { margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 400; color: var(--text-muted); }
-        .info-link button { background: none; border: none; color: var(--primary-color); text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: 0.95em; font-family: inherit; border-bottom: 1px dashed var(--primary-color); }
-        .info-link button:hover { color: var(--primary-hover); border-bottom-style: solid; }
+        --hover-bg: #3a3a3c;
+        --selected-bg: rgba(77, 171, 247, 0.15); /* Dark primary alpha */
+        --selected-border: rgba(77, 171, 247, 0.4);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
 
-        .controls-panel { background-color: var(--card-bg); padding: var(--spacing); border: 1px solid var(--card-border); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); width: var(--controls-width); flex-shrink: 0; height: fit-content; }
-        .canvas-section { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: var(--canvas-size); flex-grow: 1; }
-        .canvas-instructions { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-align: center; }
-        .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: white; width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: var(--canvas-size); max-height: var(--canvas-size); box-shadow: var(--shadow-md); overflow: hidden; border-radius: var(--border-radius); margin-bottom: var(--spacing); }
-        #drawingCanvas, #gridCanvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent; }
-        #drawingCanvas { position: relative; z-index: 0; background-color: white; }
-        .cursor-pencil { cursor: url('pencil.png') 0 16, crosshair; } .cursor-crosshair { cursor: crosshair; } .cursor-default { cursor: default; }
-        #gridCanvas { pointer-events: none; z-index: 1; }
+        --grid-slice-color: #777;
+        --grid-reflect-line-color: #fab005; /* Darker yellow/orange */
+    }
+    /* --- End Dark Theme --- */
 
-        .controls-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--spacing) * 0.6); width: 100%; max-width: var(--canvas-size); margin: 0 auto; }
-        .btn { display: inline-block; font-weight: 500; line-height: 1.5; color: var(--text-color); text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid transparent; padding: 0.4rem 0.9rem; font-size: 0.9rem; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; }
-        .btn:disabled { pointer-events: none; opacity: var(--disabled-opacity); }
-        .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); } .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; }
-        .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); } .btn-outline-danger:hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; }
-        .btn-outline-success { color: var(--success-color); border-color: var(--success-color); } .btn-outline-success:hover { background-color: var(--success-color); border-color: var(--success-color); color: white; }
-        .btn-outline-info { color: var(--info-color); border-color: var(--info-color); } .btn-outline-info:hover { background-color: var(--info-color); border-color: var(--info-color); color: white; }
+    *, *::before, *::after { box-sizing: border-box; }
 
-        .controls-footer label { cursor: pointer; display: inline-flex; align-items: center; gap: 0.4em; font-size: 0.9rem; padding: 0.4rem 0.6rem; border-radius: var(--border-radius); transition: background-color 0.15s ease; vertical-align: middle; color: var(--secondary-color); }
-        .controls-footer label:hover { background-color: var(--hover-bg); color: var(--dark-color); }
-        .controls-footer input[type="checkbox"] { cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.2em; accent-color: var(--primary-color); }
+    body {
+        font-family: var(--font-family-sans-serif);
+        display: flex; flex-direction: column; align-items: center;
+        background-color: var(--body-bg); color: var(--body-text);
+        margin: 0; padding: calc(var(--spacing) * 2); /* More padding */
+        min-height: 100vh;
+        font-size: 16px; line-height: 1.6;
+        transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    }
 
-        .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.25) 0; display: flex; flex-direction: column; } .control-group:last-child { margin-bottom: 0; }
-        .control-group legend { font-weight: 600; margin-bottom: calc(var(--spacing)*0.8); font-size: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--card-border); width: 100%; color: var(--dark-color); }
-        .control-group label { display: flex; align-items: center; gap: 0.6em; margin-bottom: 4px; cursor: pointer; font-size: 0.9rem; padding: 0.45rem 0.75rem; border-radius: var(--border-radius); transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out; border: 1px solid transparent; position: relative; }
-        .control-group label:hover:not(.selected) { background-color: var(--hover-bg); }
-        .control-group input[type="radio"], .control-group input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+    .app-container {
+        width: 100%;
+        max-width: calc(var(--canvas-size) + (2 * var(--controls-width)) + (4 * var(--spacing)));
+        display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--spacing) * 1.5); /* More gap */
+    }
 
-        .control-group label.checkbox-label span.custom-checkbox { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--input-border); border-radius: 0.25em; background-color: white; flex-shrink: 0; margin-right: 0; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; position: relative; top: 0.1em; }
-        .control-group input[type="checkbox"]:checked + span.custom-checkbox { background-color: var(--primary-color); border-color: var(--primary-color); }
-        .control-group input[type="checkbox"]:checked + span.custom-checkbox::after { content: ''; display: block; width: 0.6em; height: 0.3em; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(-1px, 1px); position: absolute; left: 0.2em; top: 0.25em; }
+    header { width: 100%; text-align: center; margin-bottom: calc(var(--spacing) * 1.5); }
+    h1 { margin-top: 0; margin-bottom: 0.4rem; font-weight: 600; color: var(--heading-color); font-size: 2.2rem; transition: color var(--transition-speed) ease; }
+    h2 { margin-top: 0; margin-bottom: 0.8rem; font-size: 1.1rem; font-weight: 400; color: var(--text-muted); transition: color var(--transition-speed) ease; }
+    .info-link button { background: none; border: none; color: var(--primary-color); text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: 0.95em; font-family: inherit; border-bottom: 1px dashed var(--primary-color); transition: color 0.15s ease, border-color 0.15s ease; }
+    .info-link button:hover { color: var(--primary-hover); border-bottom-style: solid; }
 
-        .control-group label span.custom-radio { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--input-border); border-radius: 50%; background-color: white; flex-shrink: 0; position: relative; top: 0.1em; transition: border-color 0.15s ease-in-out; }
-        .control-group input[type="radio"]:checked + span.custom-radio { border-color: var(--primary-color); border-width: 2px; }
-        .control-group input[type="radio"]:checked + span.custom-radio::after { content: ''; display: block; width: 0.5em; height: 0.5em; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .control-group label.selected { background-color: var(--selected-bg); border-color: var(--selected-border); }
-        .control-group label.selected span:not(.custom-radio):not(.color-swatch) { color: var(--primary-color); font-weight: 500; }
+    .controls-panel {
+        background-color: var(--card-bg);
+        padding: calc(var(--spacing) * 1.4); /* More padding */
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        width: var(--controls-width);
+        flex-shrink: 0; height: fit-content;
+        transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    }
 
-        .color-swatch { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid rgba(0,0,0,0.1); margin-right: 0.6em; vertical-align: middle; flex-shrink: 0; border-radius: 4px; box-shadow: var(--shadow-sm); }
-        .color-swatch[style*="white"], .color-swatch[style*="#ffffff"], .color-swatch[style*="#f"] { border-color: #ccc; }
-        .rotations-list { max-height: 350px; overflow-y: auto; padding-right: 8px; margin-right: -8px; }
+    .canvas-section { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: var(--canvas-size); flex-grow: 1; }
+    .canvas-instructions { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; text-align: center; transition: color var(--transition-speed) ease; }
+    .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: var(--canvas-bg); width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: var(--canvas-size); max-height: var(--canvas-size); box-shadow: var(--shadow-lg); overflow: hidden; border-radius: var(--border-radius); margin-bottom: calc(var(--spacing) * 1.2); transition: border-color var(--transition-speed) ease; }
+    #drawingCanvas, #gridCanvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent; }
+    #drawingCanvas { position: relative; z-index: 0; background-color: var(--canvas-bg); /* Canvas itself stays white */ }
+    .cursor-pencil { cursor: url('pencil.png') 0 16, crosshair; } .cursor-crosshair { cursor: crosshair; } .cursor-default { cursor: default; }
+    #gridCanvas { pointer-events: none; z-index: 1; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); padding: var(--spacing); backdrop-filter: blur(3px); }
-        .modal-content { background-color: var(--card-bg); margin: 4% auto; padding: calc(var(--spacing) * 1.5); border: none; border-radius: var(--border-radius); width: 90%; max-width: 650px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); position: relative; animation: modalFadeIn 0.3s ease-out; }
-        .modal-close { color: var(--secondary-color); position: absolute; top: calc(var(--spacing) * 0.8); right: calc(var(--spacing) * 1.2); font-size: 2rem; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.15s ease; }
-        .modal-close:hover, .modal-close:focus { color: var(--danger-color); text-decoration: none; }
-        .modal h2 { margin-top: 0; color: var(--primary-color); font-weight: 600; margin-bottom: var(--spacing); }
-        .modal p, .modal ul { font-size: 0.95em; line-height: 1.7; color: var(--text-color); }
-        .modal ul { padding-left: 20px; margin-top: 0.5em; } .modal li { margin-bottom: 0.7em; }
-        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .controls-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--spacing) * 0.8); width: 100%; max-width: var(--canvas-size); margin: 0 auto; }
 
-        @media (max-width: 1100px) { .app-container { flex-direction: column; align-items: center; max-width: 100%; } .controls-panel { width: 100%; max-width: 500px; } .canvas-section { order: -1; } }
-        @media (max-width: 480px) { body { padding: var(--spacing); } h1 { font-size: 1.6rem; } .btn { font-size: 0.85rem; padding: 0.35rem 0.8rem; } .controls-footer { gap: calc(var(--spacing) * 0.5); } .control-group legend { font-size: 0.95rem; } .control-group label { font-size: 0.85rem; padding: 0.4rem 0.6rem;} .modal-content { padding: var(--spacing); } .modal h2 { font-size: 1.3rem; } }
-    </style>
+    /* --- Buttons --- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; font-weight: 500; line-height: 1.5; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid var(--input-border); padding: 0.5rem 1.1rem; font-size: 0.9rem; border-radius: var(--border-radius); transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+    .btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+    .btn:disabled { pointer-events: none; opacity: var(--disabled-opacity); }
+    .btn:not(:disabled):hover { border-color: var(--secondary-hover); background-color: var(--secondary-hover); color: var(--light-color); /* White/v-light gray */ }
+    body.dark-mode .btn:not(:disabled):hover { color: var(--dark-color); } /* Black/v-dark gray */
+    .btn:not(:disabled):active { border-color: var(--secondary-active); background-color: var(--secondary-active); color: var(--light-color); }
+    body.dark-mode .btn:not(:disabled):active { color: var(--dark-color); }
+
+    /* Outline Button Variants */
+    .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); } .btn-outline-danger:not(:disabled):hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; } .btn-outline-danger:not(:disabled):active { background-color: var(--danger-active); border-color: var(--danger-active); color: white; }
+    .btn-outline-success { color: var(--success-color); border-color: var(--success-color); } .btn-outline-success:not(:disabled):hover { background-color: var(--success-color); border-color: var(--success-color); color: white; } .btn-outline-success:not(:disabled):active { background-color: var(--success-active); border-color: var(--success-active); color: white; }
+    .btn-outline-info { color: var(--info-color); border-color: var(--info-color); } .btn-outline-info:not(:disabled):hover { background-color: var(--info-color); border-color: var(--info-color); color: var(--dark-color); } .btn-outline-info:not(:disabled):active { background-color: var(--info-active); border-color: var(--info-active); color: var(--dark-color); }
+    .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); } .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; } .btn-outline-secondary:not(:disabled):active { background-color: var(--secondary-active); border-color: var(--secondary-active); color: white; }
+    body.dark-mode .btn-outline-secondary:not(:disabled):hover, body.dark-mode .btn-outline-secondary:not(:disabled):active { color: var(--dark-color); } /* Darker text on secondary hover/active in dark */
+
+    /* Specific style for dark mode toggle button text/icon */
+    #darkModeToggle .icon-sun, body:not(.dark-mode) #darkModeToggle .icon-moon { display: none; }
+    body.dark-mode #darkModeToggle .icon-sun { display: inline-block; }
+    body:not(.dark-mode) #darkModeToggle .icon-moon { display: inline-block; }
+
+    /* --- Checkbox Label (Show Guides) --- */
+    .controls-footer label { cursor: pointer; display: inline-flex; align-items: center; gap: 0.5em; font-size: 0.9rem; padding: 0.5rem 0.9rem; border-radius: var(--border-radius); transition: background-color 0.15s ease, color 0.15s ease; vertical-align: middle; color: var(--text-muted); }
+    .controls-footer label:hover { background-color: var(--hover-bg); color: var(--body-text); }
+    .controls-footer input[type="checkbox"] { cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.3em; accent-color: var(--primary-color); vertical-align: middle; position: relative; top: -1px; }
+
+    /* --- Control Groups --- */
+    .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.6) 0; display: flex; flex-direction: column; } .control-group:last-child { margin-bottom: 0; }
+    .control-group legend { font-weight: 600; margin-bottom: calc(var(--spacing)*0.9); font-size: 1.1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--card-border); width: 100%; color: var(--heading-color); transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease; }
+    .control-group label { display: flex; align-items: center; gap: 0.7em; margin-bottom: 6px; cursor: pointer; font-size: 0.95rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius); transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; border: 1px solid transparent; position: relative; }
+    .control-group label:hover:not(.selected) { background-color: var(--hover-bg); }
+    .control-group input[type="radio"], .control-group input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; } /* Hide original input */
+
+    /* Custom Checkbox (Reflection Toggle) */
+    .control-group label.checkbox-label span.custom-checkbox { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid var(--input-border); border-radius: 0.25em; background-color: var(--card-bg); flex-shrink: 0; margin-right: 0; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; position: relative; top: 0.1em; }
+    .control-group input[type="checkbox"]:checked + span.custom-checkbox { background-color: var(--primary-color); border-color: var(--primary-color); }
+    .control-group input[type="checkbox"]:checked + span.custom-checkbox::after { content: ''; display: block; width: 0.7em; height: 0.35em; border-left: 2px solid var(--card-bg); border-bottom: 2px solid var(--card-bg); transform: rotate(-45deg) translate(-1px, 1px); position: absolute; left: 0.25em; top: 0.3em; }
+    .control-group input[type="checkbox"]:focus-visible + span.custom-checkbox { box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+
+    /* Custom Radio Buttons */
+    .control-group label span.custom-radio { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid var(--input-border); border-radius: 50%; background-color: var(--card-bg); flex-shrink: 0; position: relative; top: 0.1em; transition: border-color 0.15s ease-in-out, background-color 0.15s ease, box-shadow 0.15s ease; }
+    .control-group input[type="radio"]:checked + span.custom-radio { border-color: var(--primary-color); border-width: 2px; }
+    .control-group input[type="radio"]:checked + span.custom-radio::after { content: ''; display: block; width: 0.65em; height: 0.65em; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .control-group input[type="radio"]:focus-visible + span.custom-radio { box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+
+    /* Selected Label State */
+    .control-group label.selected { background-color: var(--selected-bg); border-color: var(--selected-border); }
+    .control-group label.selected span:not(.custom-radio):not(.custom-checkbox):not(.color-swatch) { color: var(--primary-color); font-weight: 500; }
+
+    /* Color Swatches */
+    .color-swatch { display: inline-block; width: 1.6em; height: 1.6em; border: 1px solid rgba(0,0,0,0.1); margin-right: 0.6em; vertical-align: middle; flex-shrink: 0; border-radius: 5px; box-shadow: var(--shadow-sm); transition: transform 0.1s ease, box-shadow 0.15s ease; }
+    .color-swatch[style*="white"], .color-swatch[style*="#ffffff"], .color-swatch[style*="#f"] { border-color: #ccc; }
+    .control-group label.selected .color-swatch { transform: scale(1.15); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary-color); }
+    body.dark-mode .color-swatch { border-color: rgba(255,255,255,0.1); }
+    body.dark-mode .color-swatch[style*="black"], body.dark-mode .color-swatch[style*="#212529"] { border-color: #666; } /* Darker border for black swatch in dark mode */
+    body.dark-mode .control-group label.selected .color-swatch { box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary-color); }
+
+    /* Rotations List Scrollbar */
+    .rotations-list { max-height: 350px; overflow-y: auto; padding-right: 10px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: var(--secondary-color) var(--hover-bg); }
+    .rotations-list::-webkit-scrollbar { width: 8px; }
+    .rotations-list::-webkit-scrollbar-track { background: var(--hover-bg); border-radius: 4px; }
+    .rotations-list::-webkit-scrollbar-thumb { background-color: var(--secondary-color); border-radius: 4px; border: 2px solid var(--hover-bg); }
+    .rotations-list::-webkit-scrollbar-thumb:hover { background-color: var(--secondary-hover); }
+
+    /* --- Modal --- */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); padding: var(--spacing); backdrop-filter: blur(5px); }
+    .modal-content { background-color: var(--card-bg); margin: 5% auto; padding: calc(var(--spacing) * 2); border: none; border-radius: var(--border-radius); width: 90%; max-width: 750px; box-shadow: var(--shadow-lg); position: relative; animation: modalFadeIn 0.3s ease-out; transition: background-color var(--transition-speed) ease; }
+    .modal-close { color: var(--secondary-color); position: absolute; top: calc(var(--spacing) * 1); right: calc(var(--spacing) * 1.5); font-size: 2.5rem; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.15s ease; }
+    .modal-close:hover, .modal-close:focus { color: var(--danger-color); text-decoration: none; }
+    .modal h2 { margin-top: 0; color: var(--primary-color); font-weight: 600; margin-bottom: var(--spacing); transition: color var(--transition-speed) ease; font-size: 1.8rem; }
+    .modal p, .modal ul { font-size: 1rem; line-height: 1.7; color: var(--body-text); transition: color var(--transition-speed) ease; }
+    .modal ul { padding-left: 30px; margin-top: 0.8em; } .modal li { margin-bottom: 0.9em; }
+    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Responsiveness --- */
+    @media (max-width: 1200px) { /* Adjusted breakpoint */
+        .app-container { flex-direction: column; align-items: center; max-width: 100%; gap: var(--spacing); }
+        .controls-panel { width: 100%; max-width: 600px; } /* Allow controls to be wider */
+        .canvas-section { order: -1; /* Canvas first on smaller screens */ }
+        .rotations-list { max-height: 250px; } /* Shorter scroll list */
+    }
+    @media (max-width: 768px) {
+        body { padding: var(--spacing); } /* Less padding on mobile */
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1rem; }
+        .controls-panel { padding: calc(var(--spacing) * 1.2); }
+        .control-group legend { font-size: 1rem; }
+        .control-group label { font-size: 0.9rem; padding: 0.5rem 0.8rem;}
+        .controls-footer { gap: calc(var(--spacing) * 0.6); }
+        .controls-footer .btn, .controls-footer label { flex-grow: 1; justify-content: center; padding: 0.5rem 0.8rem; font-size: 0.85rem; } /* Buttons take full width in footer */
+        #darkModeToggle { min-width: auto; }
+        .modal-content { padding: calc(var(--spacing) * 1.5); margin-top: 10%; }
+        .modal h2 { font-size: 1.5rem; }
+    }
+</style>
+
 </head>
+<!-- Removed dark-mode class for light mode default -->
 <body>
 
-    <!-- HTML Structure remains the same as v1.9 -->
-    <div class="app-container">
-        <header>
-            <h1>Rosette Symmetry</h1>
-            <h2>(Rotation and Dihedral Groups)</h2>
-            <div class="info-link">
-                 (<button id="infoBtn">Click here</button> for info and instructions.)
-            </div>
-        </header>
-
-        <aside class="controls-panel controls-left">
-            <!-- Reflection Toggle -->
-            <fieldset class="control-group">
-                 <legend>Symmetry Type</legend>
-                 <label class="checkbox-label">
-                     <input type="checkbox" id="reflectionToggle">
-                     <span class="custom-checkbox"></span>
-                     <span>Enable Reflection (D<sub>n</sub>)</span>
-                 </label>
-            </fieldset>
-            <!-- Rotation Order -->
-            <fieldset class="control-group">
-                <legend>Rotations (n)</legend>
-                <div class="rotations-list">
-                    <label><input type="radio" name="rotationOrder" value="1" checked> <span class="custom-radio"></span><span>1 (C<sub>1</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="2"> <span class="custom-radio"></span><span>2 (C<sub>2</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="3"> <span class="custom-radio"></span><span>3 (C<sub>3</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="4"> <span class="custom-radio"></span><span>4 (C<sub>4</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="5"> <span class="custom-radio"></span><span>5 (C<sub>5</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="6"> <span class="custom-radio"></span><span>6 (C<sub>6</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="7"> <span class="custom-radio"></span><span>7 (C<sub>7</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="8"> <span class="custom-radio"></span><span>8 (C<sub>8</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="9"> <span class="custom-radio"></span><span>9 (C<sub>9</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="10"> <span class="custom-radio"></span><span>10 (C<sub>10</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="11"> <span class="custom-radio"></span><span>11 (C<sub>11</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="12"> <span class="custom-radio"></span><span>12 (C<sub>12</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="13"> <span class="custom-radio"></span><span>13 (C<sub>13</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="14"> <span class="custom-radio"></span><span>14 (C<sub>14</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="15"> <span class="custom-radio"></span><span>15 (C<sub>15</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="16"> <span class="custom-radio"></span><span>16 (C<sub>16</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="17"> <span class="custom-radio"></span><span>17 (C<sub>17</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="18"> <span class="custom-radio"></span><span>18 (C<sub>18</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="19"> <span class="custom-radio"></span><span>19 (C<sub>19</sub>)</span></label>
-                    <label><input type="radio" name="rotationOrder" value="20"> <span class="custom-radio"></span><span>20 (C<sub>20</sub>)</span></label>
-                </div>
-            </fieldset>
-        </aside>
-
-        <main class="canvas-section">
-            <div class="canvas-instructions">Draw in the white area below. Symmetry is applied live.</div>
-            <div class="canvas-container">
-                <canvas id="drawingCanvas"></canvas>
-                <canvas id="gridCanvas"></canvas>
-            </div>
-            <footer class="controls-footer">
-                 <button id="undoBtn" title="Undo (Ctrl+Z)" class="btn btn-outline-secondary" disabled>Undo</button>
-                 <button id="redoBtn" title="Redo (Ctrl+Y)" class="btn btn-outline-secondary" disabled>Redo</button>
-                 <button id="clearBtn" title="Clear Canvas" class="btn btn-outline-danger">Clear</button>
-                 <label title="Show rotation/reflection guide lines">
-                     <input type="checkbox" id="showSlicesCheck"> Show Slices
-                 </label>
-                 <button id="saveBtn" title="Save drawing data as JSON" class="btn btn-outline-success">Save Data</button>
-                 <button id="loadBtn" title="Load drawing data from JSON" class="btn btn-outline-secondary">Load Data</button>
-                 <input type="file" id="loadFile" accept=".json" style="display: none;">
-                 <button id="downloadImageBtn" title="Download image as PNG" class="btn btn-outline-info">Download Image</button>
-            </footer>
-        </main>
-
-        <aside class="controls-panel controls-right">
-             <!-- Tool -->
-            <fieldset class="control-group">
-                <legend>Tool</legend>
-                <label><input type="radio" name="tool" value="line"> <span class="custom-radio"></span><span>Line</span></label>
-                <label><input type="radio" name="tool" value="rectangle"> <span class="custom-radio"></span><span>Rectangle</span></label>
-                <label><input type="radio" name="tool" value="oval"> <span class="custom-radio"></span><span>Oval</span></label>
-                <label><input type="radio" name="tool" value="filledRect"> <span class="custom-radio"></span><span>Filled Rect</span></label>
-                <label><input type="radio" name="tool" value="filledOval"> <span class="custom-radio"></span><span>Filled Oval</span></label>
-                <label><input type="radio" name="tool" value="freehand" checked> <span class="custom-radio"></span><span>Freehand</span></label>
-            </fieldset>
-            <!-- Line Width -->
-            <fieldset class="control-group">
-                <legend>Line Width</legend>
-                <label><input type="radio" name="lineWidth" value="1"> <span class="custom-radio"></span><span>1 px</span></label>
-                <label><input type="radio" name="lineWidth" value="2"> <span class="custom-radio"></span><span>2 px</span></label>
-                <label><input type="radio" name="lineWidth" value="3" checked> <span class="custom-radio"></span><span>3 px</span></label>
-                <label><input type="radio" name="lineWidth" value="4"> <span class="custom-radio"></span><span>4 px</span></label>
-                <label><input type="radio" name="lineWidth" value="5"> <span class="custom-radio"></span><span>5 px</span></label>
-                <label><input type="radio" name="lineWidth" value="10"> <span class="custom-radio"></span><span>10 px</span></label>
-                <label><input type="radio" name="lineWidth" value="20"> <span class="custom-radio"></span><span>20 px</span></label>
-            </fieldset>
-             <!-- Kursor -->
-             <fieldset class="control-group">
-                <legend>Cursor Style</legend>
-                <label><input type="radio" name="cursorStyle" value="crosshair" checked> <span class="custom-radio"></span><span>Crosshair</span></label>
-                <label><input type="radio" name="cursorStyle" value="pencil"> <span class="custom-radio"></span><span>Pencil</span></label>
-                <label><input type="radio" name="cursorStyle" value="default"> <span class="custom-radio"></span><span>Default</span></label>
-            </fieldset>
-            <!-- Color -->
-            <fieldset class="control-group">
-                <legend>Color</legend>
-                <label><input type="radio" name="color" value="black"> <span class="color-swatch" style="background-color: black;"></span><span>Hitam</span></label>
-                <label><input type="radio" name="color" value="#495057"> <span class="color-swatch" style="background-color: #495057;"></span><span>Abu Tua</span></label>
-                <label><input type="radio" name="color" value="gray"> <span class="color-swatch" style="background-color: gray;"></span><span>Abu-abu</span></label>
-                <label><input type="radio" name="color" value="#adb5bd"> <span class="color-swatch" style="background-color: #adb5bd;"></span><span>Abu Muda</span></label>
-                <label><input type="radio" name="color" value="white"> <span class="color-swatch" style="background-color: white;"></span><span>Putih</span></label>
-                <label><input type="radio" name="color" value="red"> <span class="color-swatch" style="background-color: red;"></span><span>Merah</span></label>
-                <label><input type="radio" name="color" value="orange"> <span class="color-swatch" style="background-color: orange;"></span><span>Oranye</span></label>
-                <label><input type="radio" name="color" value="yellow"> <span class="color-swatch" style="background-color: yellow;"></span><span>Kuning</span></label>
-                <label><input type="radio" name="color" value="pink"> <span class="color-swatch" style="background-color: pink;"></span><span>Pink</span></label>
-                <label><input type="radio" name="color" value="purple"> <span class="color-swatch" style="background-color: purple;"></span><span>Ungu</span></label>
-                <label><input type="radio" name="color" value="magenta"> <span class="color-swatch" style="background-color: magenta;"></span><span>magenta</span></label>
-                <label><input type="radio" name="color" value="teal"> <span class="color-swatch" style="background-color: teal;"></span><span>Teal</span></label>
-                <label><input type="radio" name="color" value="green"> <span class="color-swatch" style="background-color: green;"></span><span>Hijau</span></label>
-                <label><input type="radio" name="color" value="greenyellow"> <span class="color-swatch" style="background-color: greenyellow;"></span><span>Hijau muda</span></label>
-                <label><input type="radio" name="color" value="cyan"> <span class="color-swatch" style="background-color: cyan;"></span><span>Cyan</span></label>
-                <label><input type="radio" name="color" value="blue" checked> <span class="color-swatch" style="background-color: blue;"></span><span>Biru</span></label>
-                <label><input type="radio" name="color" value="#0d6efd"> <span class="color-swatch" style="background-color: #0d6efd;"></span><span>Biru Primer</span></label>
-                <label><input type="radio" name="color" value="indigo"> <span class="color-swatch" style="background-color: indigo;"></span><span>Indigo</span></label>
-                <label><input type="radio" name="color" value="brown"> <span class="color-swatch" style="background-color: brown;"></span><span>Coklat</span></label>
-             </fieldset>
-        </aside>
-    </div>
-
-    <!-- Info Modal Structure -->
-    <div id="infoModal" class="modal">
-         <div class="modal-content">
-            <span class="modal-close" id="modalCloseBtn">×</span>
-            <h2>Rosette Symmetry Info & Instructions</h2>
-            <p>This application demonstrates rosette symmetry, where patterns are repeated around a central point.</p>
-            <ul>
-                <li><strong>Rotations (n):</strong> Select the number of times the motif repeats in a full circle (from 1 to 20). This corresponds to C<sub>n</sub> cyclic symmetry.</li>
-                <li><strong>Enable Reflection:</strong> Check this box to add reflections across lines passing through the center. This creates D<sub>n</sub> dihedral symmetry (like a kaleidoscope).</li>
-                <li><strong>Tool, Line Width, Color, Cursor:</strong> Choose your drawing preferences.</li>
-                <li><strong>Drawing:</strong> Click and drag (or use touch) in the white canvas area to draw your fundamental motif. The symmetry is applied instantly.</li>
-                <li><strong>Show Slices:</strong> Check this box to display guide lines. For C<sub>n</sub> symmetry (reflection off), dashed lines show the N sectors. For D<sub>n</sub> symmetry (reflection on), solid lines show the N reflection axes.</li>
-                <li><strong>Controls:</strong> Use Undo, Redo, Clear, Save Data (JSON), Load Data (JSON), and Download Image (PNG).</li>
-            </ul>
-            <p><strong>Tip:</strong> Start with a low rotation number (e.g., 3 or 4) and draw a simple shape off-center to clearly see the effect. Then experiment with higher numbers and enabling reflection.</p>
+<div class="app-container">
+    <header>
+        <h1>Rosette Symmetry</h1>
+        <h2>(Rotation and Dihedral Groups)</h2>
+        <div class="info-link">
+             (<button id="infoBtn">Click here</button> for info and instructions.)
         </div>
+    </header>
+
+    <!-- Left Controls: Symmetry Options -->
+    <aside class="controls-panel controls-left">
+        <fieldset class="control-group">
+             <legend>Symmetry Type</legend>
+             <label class="checkbox-label">
+                 <input type="checkbox" id="reflectionToggle">
+                 <span class="custom-checkbox"></span>
+                 <span>Enable Reflection (D<sub>n</sub>)</span>
+             </label>
+        </fieldset>
+        <fieldset class="control-group">
+            <legend>Rotations (n)</legend>
+            <div class="rotations-list">
+                <!-- Rotation options -->
+                <label><input type="radio" name="rotationOrder" value="1" checked> <span class="custom-radio"></span><span>1 (C<sub>1</sub> / D<sub>1</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="2"> <span class="custom-radio"></span><span>2 (C<sub>2</sub> / D<sub>2</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="3"> <span class="custom-radio"></span><span>3 (C<sub>3</sub> / D<sub>3</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="4"> <span class="custom-radio"></span><span>4 (C<sub>4</sub> / D<sub>4</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="5"> <span class="custom-radio"></span><span>5 (C<sub>5</sub> / D<sub>5</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="6"> <span class="custom-radio"></span><span>6 (C<sub>6</sub> / D<sub>6</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="7"> <span class="custom-radio"></span><span>7 (C<sub>7</sub> / D<sub>7</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="8"> <span class="custom-radio"></span><span>8 (C<sub>8</sub> / D<sub>8</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="9"> <span class="custom-radio"></span><span>9 (C<sub>9</sub> / D<sub>9</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="10"> <span class="custom-radio"></span><span>10 (C<sub>10</sub> / D<sub>10</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="12"> <span class="custom-radio"></span><span>12 (C<sub>12</sub> / D<sub>12</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="16"> <span class="custom-radio"></span><span>16 (C<sub>16</sub> / D<sub>16</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="20"> <span class="custom-radio"></span><span>20 (C<sub>20</sub> / D<sub>20</sub>)</span></label>
+                <label><input type="radio" name="rotationOrder" value="24"> <span class="custom-radio"></span><span>24 (C<sub>24</sub> / D<sub>24</sub>)</span></label>
+             </div>
+        </fieldset>
+    </aside>
+
+    <!-- Center Canvas -->
+    <main class="canvas-section">
+        <div class="canvas-instructions">Draw in the white area. Symmetry is applied live.</div>
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+            <canvas id="gridCanvas"></canvas>
+        </div>
+        <footer class="controls-footer">
+             <button id="undoBtn" title="Undo (Ctrl+Z)" class="btn btn-outline-secondary" disabled>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/> </svg>
+                 Undo
+             </button>
+             <button id="redoBtn" title="Redo (Ctrl+Y)" class="btn btn-outline-secondary" disabled>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/> </svg>
+                 Redo
+             </button>
+             <button id="clearBtn" title="Clear Canvas" class="btn btn-outline-danger">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"> <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm-2.45 7.45c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm2.235 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm-4.61 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02z"/> </svg>
+                 Clear
+             </button>
+             <label title="Show rotation/reflection guide lines">
+                 <input type="checkbox" id="showSlicesCheck"> Show Guides
+             </label>
+             <button id="saveBtn" title="Save drawing data as JSON" class="btn btn-outline-success">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16"> <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/> </svg>
+                 Save
+             </button>
+             <button id="loadBtn" title="Load drawing data from JSON" class="btn btn-outline-secondary">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"> <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.746 1.972 1.664l.122.516a.5.5 0 0 1-.972.23l-.122-.516A1.5 1.5 0 0 0 4.264 3H2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h10.97l-1.71 6.837A1.5 1.5 0 0 1 10.26 13H1.5v-1a.5.5 0 0 0-.5-.5V3.5zM.5 5a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1zM11.76 4a.5.5 0 0 0-.488.607l1.71 6.837a.5.5 0 0 0 .488.393H15.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/> </svg>
+                 Load
+             </button>
+             <input type="file" id="loadFile" accept=".json" style="display: none;">
+             <button id="downloadImageBtn" title="Download image as PNG" class="btn btn-outline-info">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16"> <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/> <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/> </svg>
+                 Image
+             </button>
+             <!-- Dark Mode Toggle Button -->
+             <button id="darkModeToggle" title="Toggle Light/Dark Mode" class="btn btn-outline-secondary">
+                 <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                     <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 0a.5.5 0 0 1-.707.707l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 3.05a.5.5 0 0 1-.707.707L2.343 2.343a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                 </svg>
+                 <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                     <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.021 3.278 7.277 7.318 7.277a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+                 </svg>
+                 <span class="toggle-text">Dark Mode</span> <!-- Text will be updated by JS -->
+             </button>
+        </footer>
+    </main>
+
+    <!-- Right Controls: Drawing Tools -->
+    <aside class="controls-panel controls-right">
+         <!-- Tool -->
+        <fieldset class="control-group">
+            <legend>Tool</legend>
+            <label><input type="radio" name="tool" value="freehand" checked> <span class="custom-radio"></span><span>Freehand</span></label>
+            <label><input type="radio" name="tool" value="line"> <span class="custom-radio"></span><span>Line</span></label>
+            <label><input type="radio" name="tool" value="rectangle"> <span class="custom-radio"></span><span>Rectangle</span></label>
+            <label><input type="radio" name="tool" value="oval"> <span class="custom-radio"></span><span>Oval</span></label>
+            <label><input type="radio" name="tool" value="filledRect"> <span class="custom-radio"></span><span>Filled Rect</span></label>
+            <label><input type="radio" name="tool" value="filledOval"> <span class="custom-radio"></span><span>Filled Oval</span></label>
+        </fieldset>
+        <!-- Line Width -->
+        <fieldset class="control-group">
+            <legend>Line Width</legend>
+            <label><input type="radio" name="lineWidth" value="1"> <span class="custom-radio"></span><span>1 px</span></label>
+            <label><input type="radio" name="lineWidth" value="2"> <span class="custom-radio"></span><span>2 px</span></label>
+            <label><input type="radio" name="lineWidth" value="3" checked> <span class="custom-radio"></span><span>3 px</span></label>
+            <label><input type="radio" name="lineWidth" value="5"> <span class="custom-radio"></span><span>5 px</span></label>
+            <label><input type="radio" name="lineWidth" value="8"> <span class="custom-radio"></span><span>8 px</span></label>
+            <label><input type="radio" name="lineWidth" value="13"> <span class="custom-radio"></span><span>13 px</span></label>
+            <label><input type="radio" name="lineWidth" value="21"> <span class="custom-radio"></span><span>21 px</span></label>
+        </fieldset>
+         <!-- Cursor -->
+         <fieldset class="control-group">
+            <legend>Cursor Style</legend>
+            <label><input type="radio" name="cursorStyle" value="crosshair" checked> <span class="custom-radio"></span><span>Crosshair</span></label>
+            <label><input type="radio" name="cursorStyle" value="pencil"> <span class="custom-radio"></span><span>Pencil</span></label>
+            <label><input type="radio" name="cursorStyle" value="default"> <span class="custom-radio"></span><span>Default</span></label>
+        </fieldset>
+        <!-- Color -->
+        <fieldset class="control-group">
+            <legend>Color</legend>
+             <!-- Using more standard/modern color names/values where appropriate -->
+             <label><input type="radio" name="color" value="#212529"> <span class="color-swatch" style="background-color: #212529;"></span><span>Black</span></label>
+             <label><input type="radio" name="color" value="#495057"> <span class="color-swatch" style="background-color: #495057;"></span><span>Gray Dark</span></label>
+             <label><input type="radio" name="color" value="#adb5bd"> <span class="color-swatch" style="background-color: #adb5bd;"></span><span>Gray</span></label>
+             <label><input type="radio" name="color" value="#dee2e6"> <span class="color-swatch" style="background-color: #dee2e6;"></span><span>Gray Light</span></label>
+             <label><input type="radio" name="color" value="#ffffff"> <span class="color-swatch" style="background-color: #ffffff;"></span><span>White</span></label>
+             <label><input type="radio" name="color" value="#dc3545"> <span class="color-swatch" style="background-color: #dc3545;"></span><span>Red</span></label>
+             <label><input type="radio" name="color" value="#fd7e14"> <span class="color-swatch" style="background-color: #fd7e14;"></span><span>Orange</span></label>
+             <label><input type="radio" name="color" value="#ffc107"> <span class="color-swatch" style="background-color: #ffc107;"></span><span>Yellow</span></label>
+             <label><input type="radio" name="color" value="#d63384"> <span class="color-swatch" style="background-color: #d63384;"></span><span>Pink</span></label>
+             <label><input type="radio" name="color" value="#6f42c1"> <span class="color-swatch" style="background-color: #6f42c1;"></span><span>Purple</span></label>
+             <!-- <label><input type="radio" name="color" value="#f032e6"> <span class="color-swatch" style="background-color: #f032e6;"></span><span>Magenta</span></label> -->
+             <label><input type="radio" name="color" value="#20c997"> <span class="color-swatch" style="background-color: #20c997;"></span><span>Teal</span></label>
+             <label><input type="radio" name="color" value="#198754"> <span class="color-swatch" style="background-color: #198754;"></span><span>Green</span></label>
+             <label><input type="radio" name="color" value="#82c91e"> <span class="color-swatch" style="background-color: #82c91e;"></span><span>Lime</span></label>
+             <label><input type="radio" name="color" value="#0dcaf0"> <span class="color-swatch" style="background-color: #0dcaf0;"></span><span>Cyan</span></label>
+             <label><input type="radio" name="color" value="#0d6efd" checked> <span class="color-swatch" style="background-color: #0d6efd;"></span><span>Blue</span></label> <!-- Default Blue -->
+             <label><input type="radio" name="color" value="#3f51b5"> <span class="color-swatch" style="background-color: #3f51b5;"></span><span>Indigo</span></label>
+             <label><input type="radio" name="color" value="#795548"> <span class="color-swatch" style="background-color: #795548;"></span><span>Brown</span></label>
+         </fieldset>
+    </aside>
+</div>
+
+<!-- Info Modal -->
+<div id="infoModal" class="modal">
+     <div class="modal-content">
+        <span class="modal-close" id="modalCloseBtn" title="Close (Esc)">×</span>
+        <h2>Rosette Symmetry Info & Instructions</h2>
+        <p>This application demonstrates rosette symmetry, where patterns are repeated around a central point using rotations and optional reflections.</p>
+        <ul>
+            <li><strong>Rotations (n):</strong> Select the number of times the motif repeats in a full circle. This creates C<sub>n</sub> cyclic symmetry.</li>
+            <li><strong>Enable Reflection:</strong> Adds reflections across lines through the center, creating D<sub>n</sub> dihedral symmetry (like a kaleidoscope). The rotation labels update to show C<sub>n</sub> / D<sub>n</sub>.</li>
+            <li><strong>Tools & Style:</strong> Choose your drawing tool, line width, color, and cursor style from the right panel.</li>
+            <li><strong>Drawing:</strong> Click and drag (or use touch) on the white canvas to draw. The symmetry is applied instantly.</li>
+            <li><strong>Show Guides:</strong> Displays guide lines. Dashed lines for C<sub>n</sub> sectors, solid orange lines for D<sub>n</sub> reflection axes.</li>
+            <li><strong>Controls:</strong> Use Undo/Redo, Clear, Save/Load (JSON data), Download Image (PNG), and toggle Light/Dark Mode.</li>
+        </ul>
+        <p><strong>Tip:</strong> Experiment with different rotation orders (n) and toggle reflection to see how the symmetry changes. Simple shapes drawn off-center often show the effect most clearly.</p>
     </div>
+</div>
 
-    <script>
-        // JavaScript remains identical to the previous Rosette version
-        // EXCEPT for the updated drawSlices() function below.
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const canvas = document.getElementById('drawingCanvas');
-            const gridCanvas = document.getElementById('gridCanvas');
-            const canvasContainer = document.querySelector('.canvas-container');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            const gridCtx = gridCanvas.getContext('2d');
-            const undoBtn = document.getElementById('undoBtn');
-            const redoBtn = document.getElementById('redoBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const showSlicesCheck = document.getElementById('showSlicesCheck');
-            const saveBtn = document.getElementById('saveBtn');
-            const loadBtn = document.getElementById('loadBtn');
-            const loadFile = document.getElementById('loadFile');
-            const downloadImageBtn = document.getElementById('downloadImageBtn');
-            const reflectionToggle = document.getElementById('reflectionToggle');
-            const controlGroups = document.querySelectorAll('.control-group');
-            const infoBtn = document.getElementById('infoBtn');
-            const infoModal = document.getElementById('infoModal');
-            const modalCloseBtn = document.getElementById('modalCloseBtn');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const canvas = document.getElementById('drawingCanvas');
+        const gridCanvas = document.getElementById('gridCanvas');
+        const canvasContainer = document.querySelector('.canvas-container');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const gridCtx = gridCanvas.getContext('2d');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const showSlicesCheck = document.getElementById('showSlicesCheck');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const loadFile = document.getElementById('loadFile');
+        const downloadImageBtn = document.getElementById('downloadImageBtn');
+        const reflectionToggle = document.getElementById('reflectionToggle');
+        const controlGroups = document.querySelectorAll('.control-group');
+        const infoBtn = document.getElementById('infoBtn');
+        const infoModal = document.getElementById('infoModal');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const rotationLabels = document.querySelectorAll('input[name="rotationOrder"] + span + span'); // For C/D label update
 
-            // --- State Variables ---
-            let isDrawing = false;
-            let currentTool = 'freehand';
-            let currentColor = 'black';
-            let currentLineWidth = 3;
-            let currentRotationOrder = 1;
-            let isReflectionEnabled = false;
-            let currentCursorStyle = 'crosshair';
-            let startX, startY, currentMouseX, currentMouseY;
-            let history = [];
-            let historyIndex = -1;
-            let drawingActions = [];
-            let currentPath = [];
-            let lastKnownCanvasState = null;
-            let rafId = null;
-            let centerX, centerY;
+        // --- State Variables ---
+        let isDrawing = false;
+        let currentTool = 'freehand';
+        let currentColor = '#0d6efd'; // Default to the checked blue (HTML value)
+        let currentLineWidth = 3;
+        let currentRotationOrder = 1;
+        let isReflectionEnabled = false;
+        let currentCursorStyle = 'crosshair';
+        let startX, startY, currentMouseX, currentMouseY;
+        let history = []; // Stores canvas data URLs for undo/redo snapshots
+        let drawingActions = []; // Stores the fundamental actions (tool, color, points, etc.)
+        let historyIndex = -1; // Pointer to the current state within drawingActions/history
+        let currentPath = []; // For freehand drawing
+        let lastKnownCanvasState = null; // Stores canvas state Image object for temp drawing
+        let rafId = null; // For requestAnimationFrame
+        let centerX, centerY;
+        const MAX_HISTORY_SIZE = 50;
 
-            // --- Setup ---
-            function resizeCanvas() { const size = canvasContainer.clientWidth; canvas.width = size; canvas.height = size; gridCanvas.width = size; gridCanvas.height = size; centerX = canvas.width / 2; centerY = canvas.height / 2; applyContextSettings(); applyCursorStyle(); drawSlices(); redrawAllActions(); }
-            function applyContextSettings(targetCtx = ctx, settings = null) { const lw = settings ? settings.lineWidth : currentLineWidth; const col = settings ? settings.color : currentColor; targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round'; targetCtx.lineWidth = lw; targetCtx.strokeStyle = col; targetCtx.fillStyle = col; }
-            function applyCursorStyle() { canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default'); if (currentCursorStyle === 'pencil') canvas.classList.add('cursor-pencil'); else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair'); else canvas.classList.add('cursor-default'); }
+        // --- Setup ---
+        function resizeCanvas() {
+            const size = Math.floor(canvasContainer.clientWidth); // Use floor for integer pixels
+            canvas.width = size; canvas.height = size;
+            gridCanvas.width = size; gridCanvas.height = size;
+            centerX = canvas.width / 2; centerY = canvas.height / 2;
+            applyContextSettings();
+            applyCursorStyle();
+            drawSlices();
+            // Redraw based on stored actions after resize
+            redrawAllActions(true); // Redraw but skip creating a new history state just for resize
+        }
 
-            // --- Info Modal Logic ---
-            function showInfoModal() { infoModal.style.display = 'block'; } function hideInfoModal() { infoModal.style.display = 'none'; } infoBtn.addEventListener('click', showInfoModal); modalCloseBtn.addEventListener('click', hideInfoModal); window.addEventListener('click', (event) => { if (event.target == infoModal) hideInfoModal(); }); window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'block') hideInfoModal(); });
+        function applyContextSettings(targetCtx = ctx, settings = null) {
+            const lw = settings ? settings.lineWidth : currentLineWidth;
+            const col = settings ? settings.color : currentColor;
+            targetCtx.lineCap = 'round';
+            targetCtx.lineJoin = 'round';
+            targetCtx.lineWidth = lw;
+            targetCtx.strokeStyle = col;
+            targetCtx.fillStyle = col; // Used for filled shapes and dots
+        }
 
-            // --- Event Listeners ---
-            controlGroups.forEach(group => { group.addEventListener('change', (e) => { const target = e.target; if (target.type === 'radio' || target.type === 'checkbox') { const prevRot = currentRotationOrder; const prevRef = isReflectionEnabled; const prevCur = currentCursorStyle; updateSettings(); updateSelectedLabels(); if(currentCursorStyle !== prevCur) applyCursorStyle(); if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) { drawSlices(); redrawAllActions(); saveState(); } else if (target.name !== 'rotationOrder' && target.id !== 'reflectionToggle'){ applyContextSettings(); } } }); });
-            showSlicesCheck.addEventListener('change', drawSlices); // Trigger redraw of guides
-            clearBtn.addEventListener('click', () => clearCanvas(false)); undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo); saveBtn.addEventListener('click', saveJson); loadBtn.addEventListener('click', () => loadFile.click()); loadFile.addEventListener('change', loadJson); downloadImageBtn.addEventListener('click', downloadCanvasImage); document.addEventListener('keydown', (e) => { if (e.ctrlKey || e.metaKey) { if (e.key === 'z') { e.preventDefault(); undo(); } else if (e.key === 'y') { e.preventDefault(); redo(); } } });
-            canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
-            let resizeTimeout; window.addEventListener('resize', () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(() => { resizeCanvas(); saveState(); }, 150); });
+         function applyCursorStyle() {
+            canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default');
+            if (currentCursorStyle === 'pencil') canvas.classList.add('cursor-pencil');
+            else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair');
+            else canvas.classList.add('cursor-default');
+        }
 
-            // --- Core Functions ---
-            function updateSettings() { currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand'; currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10); currentColor = document.querySelector('input[name="color"]:checked')?.value ?? 'black'; currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10); isReflectionEnabled = reflectionToggle.checked; currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair'; }
-            function updateSelectedLabels() { controlGroups.forEach(group => { group.querySelectorAll('label:has(input[type="radio"])').forEach(label => { const radio = label.querySelector('input[type="radio"]'); if (radio && radio.checked) label.classList.add('selected'); else label.classList.remove('selected'); }); }); }
+        // --- Dark Mode Logic ---
+        function applyTheme(theme) {
+            const toggleText = darkModeToggle.querySelector('.toggle-text');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (toggleText) toggleText.textContent = 'Light Mode'; // Text shows action to switch TO light
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                 if (toggleText) toggleText.textContent = 'Dark Mode'; // Text shows action to switch TO dark
+                localStorage.setItem('theme', 'light');
+            }
+             // Re-draw slices as colors might change
+             drawSlices();
+             // If the modal is open, ensure its colors update (if needed, though CSS vars handle most)
+        }
 
-            // --- History Management ---
-            function saveState() { if (historyIndex < history.length - 1) { history = history.slice(0, historyIndex + 1); drawingActions = drawingActions.slice(0, historyIndex + 1); } const maxHistory = 30; if (history.length >= maxHistory) { history.shift(); drawingActions.shift(); } else { historyIndex = history.length; } try { const dataUrl = canvas.toDataURL(); if (history.length === 0 || history[history.length - 1] !== dataUrl) { history.push(dataUrl); historyIndex = history.length - 1; const img = new Image(); img.onload = () => { lastKnownCanvasState = img; }; img.onerror = () => { lastKnownCanvasState = null; }; img.src = dataUrl; } else { historyIndex = history.length - 1; } } catch (e) { console.error("saveState error:", e); } updateUndoRedoButtons(); }
-            function restoreState(targetIndex) { if (targetIndex < -1 || targetIndex >= history.length) return; historyIndex = targetIndex; if (targetIndex === -1) { ctx.clearRect(0, 0, canvas.width, canvas.height); lastKnownCanvasState = null; } else { const dataUrl = history[targetIndex]; const img = new Image(); img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); applyContextSettings(); lastKnownCanvasState = img; }; img.onerror = () => { console.error("restoreState error:", targetIndex); }; img.src = dataUrl; } updateUndoRedoButtons(); }
-            function undo() { if (historyIndex >= 0) restoreState(historyIndex - 1); }
-            function redo() { if (historyIndex < history.length - 1) restoreState(historyIndex + 1); }
-            function updateUndoRedoButtons() { undoBtn.disabled = historyIndex < 0; redoBtn.disabled = historyIndex >= history.length - 1; }
-            function clearCanvas(isInternal = false) { ctx.clearRect(0, 0, canvas.width, canvas.height); gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height); if (!isInternal) { drawingActions = []; history = []; historyIndex = -1; lastKnownCanvasState = null; drawSlices(); saveState(); updateUndoRedoButtons(); } }
+        function toggleTheme() {
+            if (document.body.classList.contains('dark-mode')) {
+                applyTheme('light');
+            } else {
+                applyTheme('dark');
+            }
+        }
 
-            // --- Drawing Logic ---
-            function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0; const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0; return { x: clientX - rect.left, y: clientY - rect.top }; }
-            function startDrawing(e) { if (e.button && e.button !== 0) return; isDrawing = true; const pos = getMousePos(e); startX = pos.x; startY = pos.y; currentMouseX = startX; currentMouseY = startY; applyContextSettings(); if (currentTool === 'freehand') currentPath = [{ x: startX, y: startY }]; window.addEventListener('mousemove', handleDrawingMove); window.addEventListener('mouseup', stopDrawing); window.addEventListener('touchmove', handleDrawingMove, { passive: false }); window.addEventListener('touchend', stopDrawing); window.addEventListener('touchcancel', stopDrawing); if (rafId) cancelAnimationFrame(rafId); rafId = requestAnimationFrame(drawingLoop); }
-            function handleDrawingMove(e) { if (!isDrawing) return; if (e.type === 'touchmove') e.preventDefault(); const pos = getMousePos(e); currentMouseX = pos.x; currentMouseY = pos.y; if (currentTool === 'freehand') { const lastPoint = currentPath[currentPath.length - 1]; const dx = currentMouseX - lastPoint.x; const dy = currentMouseY - lastPoint.y; if (dx * dx + dy * dy > 4) currentPath.push({ x: currentMouseX, y: currentMouseY }); } }
-            function drawingLoop() { if (!isDrawing) { rafId = null; return; } ctx.clearRect(0, 0, canvas.width, canvas.height); if (lastKnownCanvasState) { try { ctx.drawImage(lastKnownCanvasState, 0, 0); } catch (error) { lastKnownCanvasState = null; } } applyContextSettings(); if (currentTool === 'freehand') { if (currentPath.length > 0) { const tPaths = applySymmetryToPath(currentPath); tPaths.forEach(p => drawFreehandPath(p, ctx)); } } else { if (startX !== currentMouseX || startY !== currentMouseY || currentTool === 'line') { const pts = applySymmetry(startX, startY, currentMouseX, currentMouseY); pts.forEach(p => drawPrimitive(p.x1, p.y1, p.x2, p.y2, currentTool, ctx)); } else if (startX === currentMouseX && startY === currentMouseY && (currentTool === 'filledRect' || currentTool === 'filledOval')) { const pts = applySymmetry(startX, startY, currentMouseX, currentMouseY); pts.forEach(p => drawDot(p.x1, p.y1, ctx)); } } rafId = requestAnimationFrame(drawingLoop); }
-            function stopDrawing(e) { if (!isDrawing) return; isDrawing = false; window.removeEventListener('mousemove', handleDrawingMove); window.removeEventListener('mouseup', stopDrawing); window.removeEventListener('touchmove', handleDrawingMove); window.removeEventListener('touchend', stopDrawing); window.removeEventListener('touchcancel', stopDrawing); if (rafId) cancelAnimationFrame(rafId); rafId = null; const endX = currentMouseX; const endY = currentMouseY; if (currentTool === 'freehand') { if (currentPath.length > 0) { const last = currentPath[currentPath.length - 1]; if (last.x !== endX || last.y !== endY) currentPath.push({ x: endX, y: endY }); } } let addAction = false; if (currentTool === 'freehand') addAction = currentPath.length > 1; else if (currentTool === 'line') addAction = startX !== endX || startY !== endY; else addAction = true; if (addAction) { const action = { tool: currentTool, color: currentColor, lineWidth: currentLineWidth, startX: startX, startY: startY, endX: endX, endY: endY, path: currentTool === 'freehand' ? [...currentPath] : null }; if (historyIndex < history.length - 1) { history = history.slice(0, historyIndex + 1); drawingActions = drawingActions.slice(0, historyIndex + 1); } drawingActions.push(action); saveState(); } else { ctx.clearRect(0, 0, canvas.width, canvas.height); if (lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0); } currentPath = []; }
+        // Initialize theme based on localStorage or default (light)
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            // Default to 'light' if no saved theme or if saved theme is invalid/not 'dark'
+            if (savedTheme === 'dark') {
+                 applyTheme('dark');
+            } else {
+                 applyTheme('light'); // Default or saved 'light'
+            }
+        }
 
-            // --- Redraw All Actions ---
-            function redrawAllActions() { ctx.clearRect(0, 0, canvas.width, canvas.height); const orig = { lineWidth: currentLineWidth, color: currentColor }; drawingActions.forEach((action) => { applyContextSettings(ctx, action); if (action.tool === 'freehand') { if (action.path && action.path.length > 0) { const tPaths = applySymmetryToPath(action.path); tPaths.forEach(p => drawFreehandPath(p, ctx)); } } else { const pts = applySymmetry(action.startX, action.startY, action.endX, action.endY); pts.forEach(p => { if (action.tool !== 'line' && action.startX === action.endX && action.startY === action.endY) drawDot(p.x1, p.y1, ctx); else drawPrimitive(p.x1, p.y1, p.x2, p.y2, action.tool, ctx); }); } }); applyContextSettings(ctx, orig); if (!isDrawing) { try { const url = canvas.toDataURL(); const img = new Image(); img.onload = () => { lastKnownCanvasState = img; }; img.onerror = () => { lastKnownCanvasState = null; }; img.src = url; } catch (e) { lastKnownCanvasState = null; } } }
+        // --- Info Modal Logic ---
+        function showInfoModal() { infoModal.style.display = 'block'; }
+        function hideInfoModal() { infoModal.style.display = 'none'; }
+        infoBtn.addEventListener('click', showInfoModal);
+        modalCloseBtn.addEventListener('click', hideInfoModal);
+        window.addEventListener('click', (event) => { if (event.target == infoModal) hideInfoModal(); });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'block') hideInfoModal(); });
 
-            // --- ROSETTE Symmetry Transformations ---
-            function applySymmetry(x1, y1, x2, y2) { const points = []; const N = currentRotationOrder; const reflect = isReflectionEnabled; const angleInc = (N > 0) ? (2 * Math.PI) / N : 0; const transformPt = (x, y, angle, doReflect) => { let cX = x - centerX; let cY = y - centerY; if (doReflect) cX = -cX; const cosA = Math.cos(angle); const sinA = Math.sin(angle); const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA; return { x: rX + centerX, y: rY + centerY }; }; for (let i = 0; i < N; i++) { const angle = i * angleInc; const p1r = transformPt(x1, y1, angle, false); const p2r = transformPt(x2, y2, angle, false); points.push({ x1: p1r.x, y1: p1r.y, x2: p2r.x, y2: p2r.y }); if (reflect && N > 0) { const p1rr = transformPt(x1, y1, angle, true); const p2rr = transformPt(x2, y2, angle, true); points.push({ x1: p1rr.x, y1: p1rr.y, x2: p2rr.x, y2: p2rr.y }); } } if (N <= 1 && reflect) { const p1ref = transformPt(x1, y1, 0, true); const p2ref = transformPt(x2, y2, 0, true); points.push({ x1: p1ref.x, y1: p1ref.y, x2: p2ref.x, y2: p2ref.y }); } return points; }
-            function applySymmetryToPath(path) { if (!path || path.length === 0) return []; const tPaths = []; const N = currentRotationOrder; const reflect = isReflectionEnabled; const angleInc = (N > 0) ? (2 * Math.PI) / N : 0; const transformPt = (x, y, angle, doReflect) => { let cX = x - centerX; let cY = y - centerY; if (doReflect) cX = -cX; const cosA = Math.cos(angle); const sinA = Math.sin(angle); const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA; return { x: rX + centerX, y: rY + centerY }; }; const appTrans = (origPath, angle, doReflect) => origPath.map(p => transformPt(p.x, p.y, angle, doReflect)); for (let i = 0; i < N; i++) { const angle = i * angleInc; tPaths.push(appTrans(path, angle, false)); if (reflect && N > 0) tPaths.push(appTrans(path, angle, true)); } if (N <= 1 && reflect) tPaths.push(appTrans(path, 0, true)); return tPaths; }
+        // --- Event Listeners ---
+        darkModeToggle.addEventListener('click', toggleTheme);
 
-            // --- Drawing Primitives ---
-            function drawPrimitive(x1, y1, x2, y2, tool, targetCtx) { targetCtx.beginPath(); const w = x2 - x1; const h = y2 - y1; switch (tool) { case 'line': targetCtx.moveTo(x1, y1); targetCtx.lineTo(x2, y2); targetCtx.stroke(); break; case 'rectangle': case 'filledRect': targetCtx.rect(x1, y1, w, h); if (tool === 'filledRect') targetCtx.fill(); else targetCtx.stroke(); break; case 'oval': case 'filledOval': const rX = Math.abs(w / 2); const rY = Math.abs(h / 2); const cX = x1 + w / 2; const cY = y1 + h / 2; targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI); if (tool === 'filledOval') targetCtx.fill(); else targetCtx.stroke(); break; } }
-            function drawFreehandPath(path, targetCtx) { if (!path || path.length === 0) return; targetCtx.beginPath(); targetCtx.moveTo(path[0].x, path[0].y); if (path.length === 1) drawDot(path[0].x, path[0].y, targetCtx); else { for (let i = 1; i < path.length; i++) targetCtx.lineTo(path[i].x, path[i].y); targetCtx.stroke(); } }
-            function drawDot(x, y, targetCtx) { const r = Math.max(1, targetCtx.lineWidth / 2); targetCtx.fillStyle = targetCtx.strokeStyle; targetCtx.beginPath(); targetCtx.ellipse(x, y, r, r, 0, 0, 2 * Math.PI); targetCtx.fill(); }
+        controlGroups.forEach(group => {
+            group.addEventListener('change', (e) => {
+                const target = e.target;
+                if (target.type === 'radio' || target.id === 'reflectionToggle') { // Includes checkbox
+                    const prevRot = currentRotationOrder;
+                    const prevRef = isReflectionEnabled;
+                    const prevCur = currentCursorStyle;
 
-            // --- Draw Guides (Slices / Axes) --- // UPDATED v1.10
-            function drawSlices() {
-                gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-                if (!showSlicesCheck.checked) return;
+                    updateSettings(); // Update state variables from UI
+                    updateSelectedLabels(); // Update visual selection styles
 
-                const N = currentRotationOrder;
-                const reflect = isReflectionEnabled;
-                const width = gridCanvas.width;
-                const height = gridCanvas.height;
-
-                if (N <= 0 || (N === 1 && !reflect)) return;
-
-                gridCtx.save();
-                gridCtx.lineWidth = 1;
-
-                const calculateEndPoint = (angle) => {
-                    const cosA = Math.cos(angle);
-                    const sinA = Math.sin(angle);
-                    let t = Infinity;
-                    const epsilon = 1e-9; // Small number to handle near-zero cases
-
-                    // Check intersection with vertical edges
-                    if (Math.abs(cosA) > epsilon) {
-                        const t_x1 = -centerX / cosA; // t for x=0
-                        const t_x2 = (width - centerX) / cosA; // t for x=width
-                        if (t_x1 >= -epsilon) t = Math.min(t, t_x1); // Use small epsilon for comparison
-                        if (t_x2 >= -epsilon) t = Math.min(t, t_x2);
+                    if(currentCursorStyle !== prevCur) {
+                        applyCursorStyle(); // Apply new cursor if changed
                     }
 
-                    // Check intersection with horizontal edges
-                    if (Math.abs(sinA) > epsilon) {
-                        const t_y1 = -centerY / sinA; // t for y=0
-                        const t_y2 = (height - centerY) / sinA; // t for y=height
-                        if (t_y1 >= -epsilon) t = Math.min(t, t_y1);
-                        if (t_y2 >= -epsilon) t = Math.min(t, t_y2);
-                    }
-
-                     // Fallback for pure horizontal/vertical if t is still Infinity
-                     if (t === Infinity) {
-                         if (Math.abs(cosA) < epsilon) t = height / 2 / Math.abs(sinA || epsilon); // Vertical
-                         else if (Math.abs(sinA) < epsilon) t = width / 2 / Math.abs(cosA || epsilon); // Horizontal
-                         else t = Math.max(width, height); // Should not happen
-                     }
-
-
-                    return {
-                        x: centerX + t * cosA,
-                        y: centerY + t * sinA
-                    };
-                };
-
-                if (reflect) {
-                    // --- Draw Dn Reflection Axes ---
-                    const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim() || '#e74c3c';
-                    gridCtx.strokeStyle = reflectColor;
-                    gridCtx.setLineDash([]); // Solid
-                    gridCtx.lineWidth = 1.2;
-
-                    const angleBetweenAxes = Math.PI / N;
-                    const startAngle = -Math.PI / 2; // Start vertical
-
-                    for (let i = 0; i < N; i++) {
-                        const angle = startAngle + i * angleBetweenAxes;
-                        const endPoint = calculateEndPoint(angle);
-                        gridCtx.beginPath();
-                        gridCtx.moveTo(centerX, centerY);
-                        gridCtx.lineTo(endPoint.x, endPoint.y);
-                        gridCtx.stroke();
-                    }
-                } else {
-                    // --- Draw Cn Sector Boundaries ---
-                    if (N > 1) {
-                        const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim() || '#aab7c4';
-                        gridCtx.strokeStyle = sliceColor;
-                        gridCtx.setLineDash([4, 4]); // Dashed
-
-                        const angleIncrement = (2 * Math.PI) / N;
-                        for (let i = 0; i < N; i++) {
-                            const angle = i * angleIncrement; // Start horizontal
-                            const endPoint = calculateEndPoint(angle);
-                            gridCtx.beginPath();
-                            gridCtx.moveTo(centerX, centerY);
-                            gridCtx.lineTo(endPoint.x, endPoint.y);
-                            gridCtx.stroke();
-                        }
+                    // If symmetry parameters changed, redraw everything and save state
+                    if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) {
+                         updateRotationLabels(); // Update C/D text in labels
+                         drawSlices(); // Redraw guides
+                         redrawAllActions(); // Redraw based on existing actions with new symmetry
+                         // saveState(); // saveState is called implicitly by redrawAllActions if needed or after drawing completes
+                    } else if (target.name !== 'rotationOrder' && target.id !== 'reflectionToggle'){
+                        // If only tool, color, width changed, just update context for next drawing
+                        applyContextSettings();
                     }
                 }
-                gridCtx.restore();
-            } // End drawSlices
+            });
+        });
 
-            // --- Save / Load JSON ---
-            function saveJson() { const data = { version: 1.3, rotationOrder: currentRotationOrder, isReflectionEnabled: isReflectionEnabled, actions: drawingActions }; const str = JSON.stringify(data, null, 2); const blob = new Blob([str], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); const t = new Date().toISOString().replace(/[:.]/g, '-'); const s = isReflectionEnabled ? 'D' : 'C'; a.download = `rosette_${s}${currentRotationOrder}_${t}.json`; a.href = url; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
-            function loadJson(event) { const f = event.target.files[0]; if (!f || !f.type.match('application/json')) { alert("Please select JSON."); loadFile.value = null; return; } const r = new FileReader(); r.onload = (e) => { try { const d = JSON.parse(e.target.result); if (!d || typeof d.rotationOrder !== 'number' || typeof d.isReflectionEnabled !== 'boolean' || !Array.isArray(d.actions)) throw new Error("Invalid Rosette JSON."); clearCanvas(true); currentRotationOrder = d.rotationOrder; isReflectionEnabled = d.isReflectionEnabled; const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`); if (rotRadio) rotRadio.checked = true; else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; reflectionToggle.checked = isReflectionEnabled; drawingActions = d.actions; updateSettings(); updateSelectedLabels(); applyCursorStyle(); drawSlices(); redrawAllActions(); history = []; historyIndex = -1; lastKnownCanvasState = null; saveState(); alert(`Loaded "${f.name}".`); } catch (err) { console.error("Load JSON error:", err); alert("Load failed: " + err.message); } finally { loadFile.value = null; } }; r.onerror = () => { alert("Cannot read file."); loadFile.value = null; }; r.readAsText(f); }
+        showSlicesCheck.addEventListener('change', drawSlices); // Toggle guides visibility
+        clearBtn.addEventListener('click', () => clearCanvas(false)); // User-triggered clear
+        undoBtn.addEventListener('click', undo);
+        redoBtn.addEventListener('click', redo);
+        saveBtn.addEventListener('click', saveJson);
+        loadBtn.addEventListener('click', () => loadFile.click());
+        loadFile.addEventListener('change', loadJson);
+        downloadImageBtn.addEventListener('click', downloadCanvasImage);
 
-            // --- Download Image ---
-            function downloadCanvasImage() { const canvasToDownload = canvas; const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); const symType = isReflectionEnabled ? 'D' : 'C'; const filename = `rosette_pattern_${symType}${currentRotationOrder}_${timestamp}.png`; const link = document.createElement('a'); link.download = filename; try { link.href = canvasToDownload.toDataURL('image/png'); document.body.appendChild(link); link.click(); document.body.removeChild(link); } catch (e) { console.error("Download image error:", e); alert("Failed to create download image."); } }
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) { // Ctrl or Cmd key
+                if (e.key === 'z') { e.preventDefault(); undo(); }
+                else if (e.key === 'y') { e.preventDefault(); redo(); }
+            }
+        });
 
-            // --- Initial Setup Calls ---
-            updateSettings(); updateSelectedLabels(); applyCursorStyle(); resizeCanvas(); updateUndoRedoButtons(); saveState();
-            console.log("Rosette Symmetry (v1.10 - Edge Fix) Initialized.");
-        }); // End DOMContentLoaded
-    </script>
+        // Canvas drawing events (Mouse & Touch)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
+
+        // Window resize handler with debounce
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                resizeCanvas(); // Resizes canvas, redraws everything, updates cache
+            }, 150); // Debounce resize event
+        });
+
+        // --- Core Functions ---
+        function updateSettings() {
+            currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand';
+            currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10);
+            currentColor = document.querySelector('input[name="color"]:checked')?.value ?? '#0d6efd'; // Match default checked color
+            currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10);
+            isReflectionEnabled = reflectionToggle.checked;
+            currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair';
+        }
+
+        function updateSelectedLabels() {
+             controlGroups.forEach(group => {
+                // Handle radio buttons
+                group.querySelectorAll('label:has(input[type="radio"])').forEach(label => {
+                    const radio = label.querySelector('input[type="radio"]');
+                    if (radio && radio.checked) label.classList.add('selected');
+                    else label.classList.remove('selected');
+                });
+                 // Handle checkbox (reflection toggle specifically)
+                 const checkboxLabel = group.querySelector('label.checkbox-label:has(#reflectionToggle)'); // Be more specific
+                 if (checkboxLabel) {
+                     if (reflectionToggle.checked) checkboxLabel.classList.add('selected');
+                     else checkboxLabel.classList.remove('selected');
+                 }
+            });
+        }
+
+         // Update C/D labels based on reflection state
+         function updateRotationLabels() {
+             const prefix = isReflectionEnabled ? 'D' : 'C';
+             rotationLabels.forEach(span => {
+                 const radio = span.previousElementSibling.previousElementSibling; // input -> custom-radio -> span text
+                 const n = radio.value;
+                 // Update the text content, keeping the structure
+                 span.textContent = `${n} (${prefix}${n})`;
+             });
+         }
+
+        // --- History Management ---
+        function saveState() {
+             // Clear future actions/history if we drew after undoing
+            if (historyIndex < drawingActions.length - 1) {
+                drawingActions = drawingActions.slice(0, historyIndex + 1);
+                history = history.slice(0, historyIndex + 1);
+            }
+
+             try {
+                 const currentStateDataUrl = canvas.toDataURL();
+
+                 // Avoid saving duplicates if canvas hasn't changed (e.g., symmetry change w/o drawing)
+                 if (history.length > 0 && history[history.length - 1] === currentStateDataUrl) {
+                      // console.log("Skipping saveState - canvas unchanged.");
+                      updateUndoRedoButtons(); // Still update buttons state
+                      return;
+                 }
+
+
+                 history.push(currentStateDataUrl); // Store the snapshot
+                 // historyIndex should now point to the last element *after* push
+                 historyIndex = history.length - 1;
+
+                 // Limit history size
+                 if (history.length > MAX_HISTORY_SIZE) {
+                     const itemsToRemove = history.length - MAX_HISTORY_SIZE;
+                     history.splice(0, itemsToRemove);
+                     // Also prune corresponding actions
+                     drawingActions.splice(0, itemsToRemove);
+                     // Adjust historyIndex to reflect the removal from the beginning
+                     historyIndex -= itemsToRemove;
+                 }
+             } catch (e) {
+                 console.error("Failed to save canvas state to history:", e);
+                 // Potentially clear history or disable undo/redo if saving fails critically
+                 history = [];
+                 drawingActions = [];
+                 historyIndex = -1;
+             }
+
+            // Update button states based on the new index and array lengths
+            updateUndoRedoButtons();
+        }
+
+
+        function restoreState(targetHistoryIndex) {
+             if (targetHistoryIndex < -1 || targetHistoryIndex >= history.length) {
+                 console.warn("Restore state index out of bounds:", targetHistoryIndex);
+                 return;
+             }
+
+             historyIndex = targetHistoryIndex;
+
+             // Clear canvas before redrawing
+             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+             if (historyIndex === -1) {
+                 // Restoring the initial blank state
+                 // Canvas is already cleared
+                 updateLastKnownCanvasState(); // Update cache to blank
+             } else {
+                 // Restoring a specific state from history
+                 const img = new Image();
+                 img.onload = () => {
+                     ctx.drawImage(img, 0, 0);
+                     updateLastKnownCanvasState(); // Update cache to restored state
+                 };
+                 img.onerror = () => {
+                     console.error("Failed to load history image. Redrawing all actions as fallback.");
+                     // Fallback: Redraw actions up to the corresponding point
+                     // This assumes drawingActions index aligns roughly with history snapshot index
+                     const correspondingActionIndex = historyIndex; // Simpler mapping
+                     redrawBasedOnActions(correspondingActionIndex); // Use a specific redraw function
+                 };
+                 img.src = history[historyIndex]; // Load the stored data URL
+             }
+
+             // Update button states
+             updateUndoRedoButtons();
+         }
+
+        // Separate function to redraw based on action index, used by restoreState fallback
+        function redrawBasedOnActions(targetActionIndex) {
+             ctx.clearRect(0, 0, canvas.width, canvas.height);
+             const actionsToRedraw = drawingActions.slice(0, targetActionIndex + 1);
+
+             actionsToRedraw.forEach(action => {
+                 applyContextSettings(ctx, action);
+                 drawAction(action, ctx); // Use a helper to draw single action
+             });
+
+             applyContextSettings(); // Restore current settings
+             updateLastKnownCanvasState(); // Update cache
+         }
+
+
+        function undo() {
+            if (historyIndex >= 0) { // Can undo if we are not at the initial state (-1)
+                restoreState(historyIndex - 1);
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) { // Can redo if not at the latest state
+                restoreState(historyIndex + 1);
+            }
+        }
+
+
+        function updateUndoRedoButtons() {
+            // Undo enabled if historyIndex is 0 or greater (not the initial -1 state)
+            undoBtn.disabled = historyIndex < 0;
+            // Redo enabled if historyIndex is less than the last index of the history array
+            redoBtn.disabled = historyIndex >= history.length - 1;
+            // Clear button enabled if there's anything in history (meaning canvas isn't blank initial state)
+            clearBtn.disabled = historyIndex < 0;
+        }
+
+        function clearCanvas(isInternal = false) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height); // Clear guides too
+            if (!isInternal) {
+                drawingActions = []; // Clear actions array
+                history = []; // Clear history snapshots
+                historyIndex = -1; // Reset history index
+                lastKnownCanvasState = null; // Clear cached state
+                drawSlices(); // Redraw guides if needed
+                saveState(); // Save the blank state (will push initial DataURL)
+                // updateUndoRedoButtons(); // saveState calls this
+            } else {
+                 updateLastKnownCanvasState(); // Update cache if cleared internally (e.g. before load)
+            }
+        }
+
+         function updateLastKnownCanvasState() {
+             // Only update if not currently drawing to avoid caching intermediate frames
+             if (isDrawing) return;
+             try {
+                 const dataUrl = canvas.toDataURL();
+                 const img = new Image();
+                 img.onload = () => { lastKnownCanvasState = img; };
+                 img.onerror = () => { lastKnownCanvasState = null; console.error("Failed to update lastKnownCanvasState from DataURL"); };
+                 img.src = dataUrl;
+             } catch (e) {
+                 console.error("Error creating data URL for canvas state cache:", e);
+                 lastKnownCanvasState = null; // Invalidate cache on error
+             }
+         }
+
+
+        // --- Drawing Logic ---
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width; // Handle CSS scaling
+            const scaleY = canvas.height / rect.height;
+            const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0;
+            const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0;
+            // Adjust position based on canvas scaling
+            return {
+                 x: (clientX - rect.left) * scaleX,
+                 y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrawing(e) {
+            if (e.button && e.button !== 0) return; // Ignore right/middle clicks
+            isDrawing = true;
+            const pos = getMousePos(e);
+            startX = pos.x; startY = pos.y;
+            currentMouseX = startX; currentMouseY = startY;
+
+            applyContextSettings(); // Ensure current settings are applied
+
+            if (currentTool === 'freehand') {
+                currentPath = [{ x: startX, y: startY }]; // Start path
+            }
+
+            // Add temporary drawing listeners to the window for broader capture
+            window.addEventListener('mousemove', handleDrawingMove);
+            window.addEventListener('mouseup', stopDrawing);
+            window.addEventListener('touchmove', handleDrawingMove, { passive: false });
+            window.addEventListener('touchend', stopDrawing);
+            window.addEventListener('touchcancel', stopDrawing); // Handle interruptions
+
+            // Start animation loop for live preview
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(drawingLoop);
+        }
+
+         function handleDrawingMove(e) {
+             if (!isDrawing) return;
+             if (e.type === 'touchmove' && e.touches.length === 1) {
+                 e.preventDefault(); // Prevent scrolling only during single-touch draw
+             }
+
+             const pos = getMousePos(e);
+             currentMouseX = pos.x;
+             currentMouseY = pos.y;
+
+             if (currentTool === 'freehand') {
+                 const lastPoint = currentPath[currentPath.length - 1];
+                 // Add point if moved sufficiently to avoid excessive points
+                 const dx = currentMouseX - lastPoint.x;
+                 const dy = currentMouseY - lastPoint.y;
+                 // Threshold based on squared distance (faster than sqrt)
+                 // Adjust threshold based on line width? Maybe not necessary.
+                 if (dx * dx + dy * dy > 9) { // Threshold = 3px distance
+                     currentPath.push({ x: currentMouseX, y: currentMouseY });
+                 }
+             }
+             // For other tools, drawingLoop handles the live preview update
+         }
+
+        function drawingLoop() {
+            if (!isDrawing) {
+                rafId = null; // Stop the loop if not drawing
+                return;
+            }
+
+            // 1. Clear the canvas for the temporary drawing preview
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Restore the last known permanent state from the cache
+            if (lastKnownCanvasState) {
+                try {
+                    ctx.drawImage(lastKnownCanvasState, 0, 0);
+                } catch (error) {
+                    console.error("Error drawing cached state:", error);
+                    // Fallback: Redraw permanent actions if cache fails
+                    redrawAllActions(true); // Redraw permanent state, skip cache update
+                }
+            } else {
+                // If no cache, redraw all permanent actions (less efficient but robust)
+                redrawAllActions(true); // Redraw permanent state, skip cache update
+            }
+
+
+            // 3. Apply current drawing settings for the preview
+            applyContextSettings();
+
+            // 4. Draw the current shape/line being dragged (with symmetry applied)
+            const tempAction = { // Create a temporary action object for drawing
+                 tool: currentTool,
+                 color: currentColor,
+                 lineWidth: currentLineWidth,
+                 startX: startX, startY: startY,
+                 endX: currentMouseX, endY: currentMouseY,
+                 path: currentPath // Use the current path for freehand preview
+            };
+            drawAction(tempAction, ctx); // Draw the symmetric preview
+
+
+            // 5. Request the next animation frame
+            rafId = requestAnimationFrame(drawingLoop);
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            // Remove temporary listeners attached to the window
+            window.removeEventListener('mousemove', handleDrawingMove);
+            window.removeEventListener('mouseup', stopDrawing);
+            window.removeEventListener('touchmove', handleDrawingMove);
+            window.removeEventListener('touchend', stopDrawing);
+            window.removeEventListener('touchcancel', stopDrawing);
+
+            // Cancel the animation frame loop
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+
+            // Ensure final mouse/touch position is captured
+             const pos = getMousePos(e); // Use last event pos if available
+             const endX = (e.type === 'mouseup' || e.type === 'touchend') ? pos.x : currentMouseX;
+             const endY = (e.type === 'mouseup' || e.type === 'touchend') ? pos.y : currentMouseY;
+
+
+            // Finalize freehand path if needed
+            if (currentTool === 'freehand' && currentPath.length > 0) {
+                const last = currentPath[currentPath.length - 1];
+                 // Add final point only if it's different from the last recorded one during move
+                if (Math.abs(last.x - endX) > 0.1 || Math.abs(last.y - endY) > 0.1) {
+                    currentPath.push({ x: endX, y: endY });
+                }
+            }
+
+             // --- Determine if a meaningful action occurred ---
+             let addAction = false;
+             const distSq = (startX - endX)**2 + (startY - endY)**2; // Squared distance
+             const minPixelMoveSq = 4; // Minimum movement squared (2px) to register
+
+             if (currentTool === 'freehand') {
+                 // Freehand needs at least 2 points (start + one move) or a significant single segment
+                 addAction = currentPath.length > 1 || (currentPath.length === 1 && distSq >= minPixelMoveSq) ;
+             } else {
+                  // Other tools: action occurs if mouse moved significantly,
+                  // or if it's a filled shape (register even a click as a dot)
+                  addAction = distSq >= minPixelMoveSq || currentTool === 'filledRect' || currentTool === 'filledOval';
+             }
+
+
+            if (addAction) {
+                 // Clear redo stack if we drew after an undo
+                if (historyIndex < drawingActions.length - 1) {
+                    drawingActions = drawingActions.slice(0, historyIndex + 1);
+                    history = history.slice(0, historyIndex + 1); // Prune history snapshots too
+                }
+
+                // Create the final action object for history
+                const action = {
+                    tool: currentTool,
+                    color: currentColor,
+                    lineWidth: currentLineWidth,
+                    startX: startX,
+                    startY: startY,
+                    endX: endX, // Use the final captured end coordinates
+                    endY: endY,
+                    // Store a *copy* of the final path for freehand
+                    path: currentTool === 'freehand' ? [...currentPath] : null
+                };
+
+                drawingActions.push(action);
+
+                // --- Permanently draw the final action onto the canvas ---
+                // We already have the previous state drawn from the cache.
+                // Just draw the *new* action on top permanently.
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                if(lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0); // Draw previous state
+                applyContextSettings(ctx, action); // Use action's settings
+                drawAction(action, ctx); // Draw the final action symmetrically
+                applyContextSettings(); // Restore current settings
+
+
+                // Save the new complete state (including the action just drawn)
+                saveState(); // Creates a new history entry
+
+            } else {
+                 // No significant action occurred (e.g., just a click with line tool)
+                 // Revert the canvas to the state *before* this interaction started.
+                 // drawingLoop might have cleared and redrawn, so ensure we restore correctly.
+                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                 if (lastKnownCanvasState) {
+                     ctx.drawImage(lastKnownCanvasState, 0, 0);
+                 } else {
+                     // Fallback if cache is missing (should be rare)
+                     redrawAllActions(true); // Redraw previous state, skip cache update
+                 }
+                 // No need to call saveState as nothing changed permanently.
+                 updateUndoRedoButtons(); // Ensure buttons are correct
+             }
+
+            // Clear temporary path for the next drawing operation
+            currentPath = [];
+        }
+
+
+        // --- Redraw All Actions ---
+        // Used for major changes like loading, resizing, or cache failures
+         function redrawAllActions(skipCacheUpdate = false) {
+             // 1. Clear the main canvas
+             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+             // 2. Store original settings to restore later
+             const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
+
+             // 3. Iterate through the currently relevant stored actions
+             const actionsToDraw = drawingActions.slice(0, historyIndex + 1); // Draw up to current history pointer
+             actionsToDraw.forEach((action) => {
+                 // Apply settings specific to this action
+                 applyContextSettings(ctx, action);
+                 // Draw the action with its symmetry
+                 drawAction(action, ctx);
+             });
+
+             // 4. Restore the current drawing settings
+             applyContextSettings(ctx, originalSettings);
+
+             // 5. Update the cached canvas state image unless skipped
+             if (!skipCacheUpdate) {
+                 updateLastKnownCanvasState();
+             }
+             // 6. Ensure Undo/Redo buttons reflect the potentially changed state
+              updateUndoRedoButtons();
+         }
+
+         // Helper function to draw a single action with symmetry
+         function drawAction(action, targetCtx) {
+             if (action.tool === 'freehand') {
+                 if (action.path && action.path.length > 0) {
+                     const tPaths = applySymmetryToPath(action.path);
+                     tPaths.forEach(p => drawFreehandPath(p, targetCtx));
+                 }
+             } else {
+                 const pts = applySymmetry(action.startX, action.startY, action.endX, action.endY);
+                 pts.forEach(p => {
+                     // Handle single point clicks for filled shapes correctly
+                     const isClick = Math.abs(action.startX - action.endX) < 0.5 && Math.abs(action.startY - action.endY) < 0.5;
+                     if ((action.tool === 'filledRect' || action.tool === 'filledOval') && isClick) {
+                         drawDot(p.x1, p.y1, targetCtx); // Draw symmetric dots for clicks
+                     } else {
+                         drawPrimitive(p.x1, p.y1, p.x2, p.y2, action.tool, targetCtx);
+                     }
+                 });
+             }
+         }
+
+
+        // --- ROSETTE Symmetry Transformations ---
+        // (Keep applySymmetry and applySymmetryToPath functions as they were in v1.11)
+        function applySymmetry(x1, y1, x2, y2) {
+            const points = [];
+            const N = currentRotationOrder;
+            const reflect = isReflectionEnabled;
+            const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
+
+            const transformPt = (x, y, angle, doReflect) => {
+                let cX = x - centerX; let cY = y - centerY;
+                if (doReflect) cX = -cX; // Reflect across Y-axis relative to center
+                const cosA = Math.cos(angle); const sinA = Math.sin(angle);
+                const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA;
+                return { x: rX + centerX, y: rY + centerY };
+            };
+
+            for (let i = 0; i < N; i++) {
+                const angle = i * angleInc;
+                const p1r = transformPt(x1, y1, angle, false);
+                const p2r = transformPt(x2, y2, angle, false);
+                points.push({ x1: p1r.x, y1: p1r.y, x2: p2r.x, y2: p2r.y });
+
+                if (reflect && N > 0) {
+                    const p1rr = transformPt(x1, y1, angle, true);
+                    const p2rr = transformPt(x2, y2, angle, true);
+                    points.push({ x1: p1rr.x, y1: p1rr.y, x2: p2rr.x, y2: p2rr.y });
+                }
+            }
+             // Explicit handling for D1 (N=1, reflect=true)
+             if (N === 1 && reflect) {
+                 const p1ref = transformPt(x1, y1, 0, true);
+                 const p2ref = transformPt(x2, y2, 0, true);
+                  // Avoid duplicate point if it's exactly on the reflection line (rare with floats)
+                 if (Math.abs(x1 - centerX) > 1e-6 || Math.abs(x2 - centerX) > 1e-6 || Math.abs(y1-y2) > 1e-6 || Math.abs(x1-x2)>1e-6) {
+                     points.push({ x1: p1ref.x, y1: p1ref.y, x2: p2ref.x, y2: p2ref.y });
+                 }
+             }
+            // If N=0 or N=1/no-reflect, the loop handles the single original point correctly.
+            return points;
+        }
+
+        function applySymmetryToPath(path) {
+            if (!path || path.length === 0) return [];
+            const transformedPaths = [];
+            const N = currentRotationOrder;
+            const reflect = isReflectionEnabled;
+            const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
+
+            const transformPt = (x, y, angle, doReflect) => {
+                 let cX = x - centerX; let cY = y - centerY;
+                 if (doReflect) cX = -cX;
+                 const cosA = Math.cos(angle); const sinA = Math.sin(angle);
+                 const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA;
+                 return { x: rX + centerX, y: rY + centerY };
+             };
+
+            const applyTransformToPath = (originalPath, angle, doReflect) => {
+                return originalPath.map(p => transformPt(p.x, p.y, angle, doReflect));
+            };
+
+            for (let i = 0; i < N; i++) {
+                const angle = i * angleInc;
+                transformedPaths.push(applyTransformToPath(path, angle, false));
+
+                if (reflect && N > 0) {
+                    transformedPaths.push(applyTransformToPath(path, angle, true));
+                }
+            }
+             // Handle D1 case (N=1, reflect=true)
+             if (N === 1 && reflect) {
+                  const reflectedPath = applyTransformToPath(path, 0, true);
+                  // Basic check to avoid adding identical path if drawn on axis
+                  const isDifferent = path.some((p, index) => {
+                      const rp = reflectedPath[index];
+                      return Math.hypot(p.x - rp.x, p.y - rp.y) > 1e-6;
+                  });
+                  if(isDifferent) {
+                    transformedPaths.push(reflectedPath);
+                  }
+             }
+
+            return transformedPaths;
+        }
+
+
+        // --- Drawing Primitives ---
+        // (Keep drawPrimitive, drawFreehandPath, drawDot as they were)
+        function drawPrimitive(x1, y1, x2, y2, tool, targetCtx) {
+            targetCtx.beginPath();
+            const w = x2 - x1; const h = y2 - y1;
+
+            switch (tool) {
+                case 'line':
+                    targetCtx.moveTo(x1, y1);
+                    targetCtx.lineTo(x2, y2);
+                    targetCtx.stroke();
+                    break;
+                case 'rectangle':
+                case 'filledRect':
+                    if (Math.abs(w) > 0.1 || Math.abs(h) > 0.1) { // Tolerate tiny rects
+                         targetCtx.rect(x1, y1, w, h);
+                         if (tool === 'filledRect') targetCtx.fill(); else targetCtx.stroke();
+                    } else if (tool === 'filledRect') { // Draw dot if filled and basically zero size
+                        drawDot(x1, y1, targetCtx);
+                    }
+                    break;
+                case 'oval':
+                case 'filledOval':
+                    const rX = Math.abs(w / 2); const rY = Math.abs(h / 2);
+                    if (rX > 0.1 || rY > 0.1) { // Tolerate tiny ovals
+                        const cX = x1 + w / 2; const cY = y1 + h / 2;
+                        targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI);
+                        if (tool === 'filledOval') targetCtx.fill(); else targetCtx.stroke();
+                    } else if (tool === 'filledOval'){ // Draw dot if filled and basically zero size
+                       drawDot(x1 + w/2, y1 + h/2, targetCtx);
+                    }
+                    break;
+            }
+        }
+
+        function drawFreehandPath(path, targetCtx) {
+            if (!path || path.length === 0) return;
+
+            targetCtx.beginPath();
+            targetCtx.moveTo(path[0].x, path[0].y);
+
+            if (path.length === 1) {
+                // Draw a dot if only one point exists (e.g., a click)
+                drawDot(path[0].x, path[0].y, targetCtx);
+            } else {
+                // Draw lines connecting the points
+                for (let i = 1; i < path.length; i++) {
+                    // Could add curve logic here (e.g., quadraticCurveTo) for smoother lines
+                    targetCtx.lineTo(path[i].x, path[i].y);
+                }
+                targetCtx.stroke();
+            }
+        }
+
+        function drawDot(x, y, targetCtx) {
+             // Draw a small filled circle representing a dot
+             // Use lineWidth for dot size, ensuring it's at least 1px radius
+             const radius = Math.max(1, targetCtx.lineWidth / 2);
+             targetCtx.fillStyle = targetCtx.strokeStyle; // Use stroke color for fill
+             targetCtx.beginPath();
+             targetCtx.ellipse(x, y, radius, radius, 0, 0, 2 * Math.PI);
+             targetCtx.fill();
+        }
+
+
+        // --- Draw Guides (Slices / Axes) ---
+        // (Keep drawSlices as it was, CSS variables handle color changes)
+        function drawSlices() {
+             gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+             if (!showSlicesCheck.checked || !gridCanvas.width || !gridCanvas.height) return;
+
+             const N = currentRotationOrder;
+             const reflect = isReflectionEnabled;
+             const width = gridCanvas.width;
+             const height = gridCanvas.height;
+             const cx = width / 2; // Use local center calculation
+             const cy = height / 2;
+
+             if (N <= 0 || (N === 1 && !reflect)) return; // No guides needed
+
+             gridCtx.save();
+             gridCtx.lineWidth = 1; // Consistent thin line for guides
+
+             const calculateEndPoint = (angle) => {
+                 const cosA = Math.cos(angle);
+                 const sinA = Math.sin(angle);
+                 let t = Infinity;
+                 const epsilon = 1e-9;
+
+                 if (Math.abs(cosA) > epsilon) {
+                     const t_x0 = -cx / cosA;
+                     const t_xW = (width - cx) / cosA;
+                     if (t_x0 >= -epsilon) t = Math.min(t, t_x0);
+                     if (t_xW >= -epsilon) t = Math.min(t, t_xW);
+                 }
+                 if (Math.abs(sinA) > epsilon) {
+                     const t_y0 = -cy / sinA;
+                     const t_yH = (height - cy) / sinA;
+                     if (t_y0 >= -epsilon) t = Math.min(t, t_y0);
+                     if (t_yH >= -epsilon) t = Math.min(t, t_yH);
+                 }
+                 t = (t === Infinity || t < epsilon) ? Math.max(width, height) * 1.5 : t; // Ensure positive length
+                 return { x: cx + t * cosA, y: cy + t * sinA };
+             };
+
+
+             if (reflect) { // Dn Symmetry - Solid Reflection Axes
+                 const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim() || '#fd7e14';
+                 gridCtx.strokeStyle = reflectColor;
+                 gridCtx.setLineDash([]); // Solid line
+                 gridCtx.lineWidth = 1.2;
+                 const angleIncrement = Math.PI / N;
+                 const startAngle = -Math.PI / 2; // Start vertical
+
+                 for (let i = 0; i < N; i++) {
+                     const angle = startAngle + i * angleIncrement;
+                     const endPoint = calculateEndPoint(angle);
+                     gridCtx.beginPath();
+                     gridCtx.moveTo(cx, cy);
+                     gridCtx.lineTo(endPoint.x, endPoint.y);
+                     gridCtx.stroke();
+                 }
+             } else { // Cn Symmetry - Dashed Sector Boundaries
+                 if (N > 1) {
+                     const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim() || '#adb5bd';
+                     gridCtx.strokeStyle = sliceColor;
+                     gridCtx.setLineDash([4, 4]); // Dashed line
+                     gridCtx.lineWidth = 1.0;
+                     const angleIncrement = (2 * Math.PI) / N;
+                     for (let i = 0; i < N; i++) {
+                         const angle = i * angleIncrement; // Start at 0 radians (right)
+                         const endPoint = calculateEndPoint(angle);
+                         gridCtx.beginPath();
+                         gridCtx.moveTo(cx, cy);
+                         gridCtx.lineTo(endPoint.x, endPoint.y);
+                         gridCtx.stroke();
+                     }
+                 }
+             }
+             gridCtx.restore();
+        }
+
+        // --- Save / Load JSON ---
+        // (Keep saveJson and loadJson largely the same, update version)
+        function saveJson() {
+            const data = {
+                version: 1.12, // Update version marker
+                rotationOrder: currentRotationOrder,
+                isReflectionEnabled: isReflectionEnabled,
+                actions: drawingActions // Save the fundamental actions array
+            };
+            const str = JSON.stringify(data, null, 2); // Pretty print JSON
+            const blob = new Blob([str], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const t = new Date().toISOString().replace(/[:.]/g, '-');
+            const s = isReflectionEnabled ? 'D' : 'C';
+            a.download = `rosette_${s}${currentRotationOrder}_${t}.json`;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function loadJson(event) {
+            const file = event.target.files[0];
+            if (!file || !file.type.match('application/json')) {
+                alert("Please select a valid JSON file (.json).");
+                loadFile.value = null; // Reset file input
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // Basic validation
+                    if (!data || typeof data.rotationOrder !== 'number' || typeof data.isReflectionEnabled !== 'boolean' || !Array.isArray(data.actions)) {
+                        throw new Error("Invalid or incompatible Rosette JSON file format.");
+                    }
+
+                    // --- Apply loaded data ---
+                    clearCanvas(true); // Clear canvas internally first
+
+                    // Restore settings state
+                    currentRotationOrder = data.rotationOrder;
+                    isReflectionEnabled = data.isReflectionEnabled;
+                    drawingActions = data.actions; // Restore the sequence of actions
+
+                    // Update UI controls to match loaded data
+                    const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`);
+                    if (rotRadio) rotRadio.checked = true;
+                    else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; // Fallback
+                    reflectionToggle.checked = isReflectionEnabled;
+
+                    updateSettings(); // Ensure internal state vars match loaded data
+                    updateSelectedLabels(); // Update visual selection styling
+                    updateRotationLabels(); // Update C/D labels
+                    applyCursorStyle(); // Apply cursor (might have changed)
+                    drawSlices(); // Draw guides for the loaded symmetry
+
+                    // Redraw based on loaded actions and reset history
+                    history = []; // Start history fresh for the loaded drawing
+                    historyIndex = -1;
+                    redrawAllActions(); // Redraw the loaded state completely
+                    saveState(); // Save the fully loaded state as the first history entry
+
+                    alert(`Loaded drawing data from "${file.name}".`);
+
+                } catch (err) {
+                    console.error("Load JSON error:", err);
+                    alert("Failed to load file: " + err.message);
+                    // Attempt to restore a stable blank state if load fails
+                    clearCanvas(false);
+                } finally {
+                    loadFile.value = null; // Reset file input regardless of success/failure
+                }
+            };
+            reader.onerror = () => {
+                alert("Error reading file.");
+                loadFile.value = null;
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Download Image ---
+        // (Keep downloadCanvasImage largely the same)
+        function downloadCanvasImage() {
+             const canvasToDownload = document.createElement('canvas');
+             const ctxToDownload = canvasToDownload.getContext('2d');
+             const width = canvas.width;
+             const height = canvas.height;
+             canvasToDownload.width = width;
+             canvasToDownload.height = height;
+
+             // Draw background color (respecting theme)
+             // Use the --canvas-bg variable value for accuracy
+             ctxToDownload.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#ffffff';
+             ctxToDownload.fillRect(0, 0, width, height);
+
+             // Draw the current drawing canvas content
+             ctxToDownload.drawImage(canvas, 0, 0);
+
+             // Optionally draw grid lines on top if shown
+             if (showSlicesCheck.checked) {
+                 ctxToDownload.drawImage(gridCanvas, 0, 0);
+             }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const symType = isReflectionEnabled ? 'D' : 'C';
+            const filename = `rosette_pattern_${symType}${currentRotationOrder}_${timestamp}.png`;
+            const link = document.createElement('a');
+            link.download = filename;
+            try {
+                link.href = canvasToDownload.toDataURL('image/png'); // Create PNG from the temporary canvas
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (e) {
+                console.error("Download image error:", e);
+                // Provide more specific error feedback if possible
+                if (e.name === 'SecurityError') {
+                     alert("Failed to create download image due to security restrictions (canvas may be tainted). Try drawing something first.");
+                } else {
+                     alert("Failed to create download image. Canvas might be too large or an unknown error occurred.");
+                }
+            }
+        }
+
+        // --- Initial Setup Calls ---
+        initializeTheme();      // Set light/dark theme based on preference or default (light)
+        updateSettings();       // Read initial settings from HTML checked states
+        updateSelectedLabels(); // Style selected controls visually
+        updateRotationLabels(); // Set initial C/D text based on reflection toggle
+        resizeCanvas();         // Set initial canvas size & draw guides/content
+        applyCursorStyle();     // Set initial cursor
+        clearCanvas(true);      // Ensure a reliably blank initial state for drawing & cache
+        saveState();            // Save the initial blank state as the first history entry
+        updateUndoRedoButtons();// Set initial button disabled states correctly
+
+        console.log("Rosette Symmetry (v1.12 - Elegant Light UI) Initialized.");
+    }); // End DOMContentLoaded
+</script>
 
 </body>
 </html>
