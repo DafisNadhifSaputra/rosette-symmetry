@@ -587,1107 +587,807 @@
 </div>
 
 <script>
-    // --- JAVASCRIPT (v1.19 - Layout Adjustment) ---
-    // Tidak ada perubahan signifikan pada logika JavaScript,
-    // hanya memastikan elemen ditemukan di lokasi baru jika perlu.
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Elemen DOM ---
-        const canvas = document.getElementById('drawingCanvas');
-        const gridCanvas = document.getElementById('gridCanvas');
-        const canvasContainer = document.querySelector('.canvas-container');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const gridCtx = gridCanvas.getContext('2d');
-        const undoBtn = document.getElementById('undoBtn');
-        const redoBtn = document.getElementById('redoBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const showSlicesCheck = document.getElementById('showSlicesCheck');
-        const saveBtn = document.getElementById('saveBtn');
-        const loadBtn = document.getElementById('loadBtn');
-        const loadFile = document.getElementById('loadFile');
-        const downloadImageBtn = document.getElementById('downloadImageBtn');
-        const reflectionToggle = document.getElementById('reflectionToggle');
-        // UPDATED: Query selector untuk grup kontrol mungkin perlu diperbarui jika struktur berubah drastis
-        const controlGroups = document.querySelectorAll('.drawing-tools-bar .control-group, .controls-panel .control-group');
-        const infoBtn = document.getElementById('infoBtn');
-        const infoModal = document.getElementById('infoModal');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const rotationTextSpans = document.querySelectorAll('.controls-panel .rotations-list label .rotation-text');
-        // Tetap menggunakan ID, lokasi tidak masalah selama ID unik
-        const colorPickerContainer = document.getElementById('colorPickerContainer');
-        const drawingToolsBar = document.querySelector('.drawing-tools-bar');
-        const controlsPanel = document.querySelector('.controls-panel');
+    // --- JAVASCRIPT (v1.19 - Layout Adjustment + Shape Rotation Fix) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Elemen DOM (Sama seperti sebelumnya) ---
+    const canvas = document.getElementById('drawingCanvas');
+    const gridCanvas = document.getElementById('gridCanvas');
+    const canvasContainer = document.querySelector('.canvas-container');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const gridCtx = gridCanvas.getContext('2d');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const showSlicesCheck = document.getElementById('showSlicesCheck');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const loadFile = document.getElementById('loadFile');
+    const downloadImageBtn = document.getElementById('downloadImageBtn');
+    const reflectionToggle = document.getElementById('reflectionToggle');
+    const controlGroups = document.querySelectorAll('.drawing-tools-bar .control-group, .controls-panel .control-group');
+    const infoBtn = document.getElementById('infoBtn');
+    const infoModal = document.getElementById('infoModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const rotationTextSpans = document.querySelectorAll('.controls-panel .rotations-list label .rotation-text');
+    const colorPickerContainer = document.getElementById('colorPickerContainer');
+    const drawingToolsBar = document.querySelector('.drawing-tools-bar');
+    const controlsPanel = document.querySelector('.controls-panel');
 
-        // --- Variabel State ---
-        let isDrawing = false;
-        let currentTool = 'freehand';
-        let currentColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-        let currentLineWidth = 3;
-        let currentRotationOrder = 1;
-        let isReflectionEnabled = false;
-        let currentCursorStyle = 'crosshair';
-        let startX, startY, currentMouseX, currentMouseY;
-        let history = [];
-        let drawingActions = [];
-        let historyIndex = -1;
-        let currentPath = [];
-        let lastKnownCanvasState = null;
-        let rafId = null;
-        let centerX, centerY;
-        let colorPicker = null;
-        const MAX_HISTORY_SIZE = 50;
-        const pencilCursorDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAJ5JREFUOE9jZKASYKSCaxjwv7f0Y2SgKnDqAjsFVQGr4M4L/P9/ZGBgYAZiP6DmkSA1DrBqAQYYGM7/X8y/gYGBgRFFgB0H6sH//0AnAwMDQwIk58/A////MwYGBlYoYP4zMDAwMhACY5EYQ5QBZP7//zMwMDAygALmBDAwMDByMIIAAgyQ0j8wMDAwMsA6sA9A7gAxnwwMAAEEALBwG0+0i3uFAAAAAElFTkSuQmCC';
-        const CANVAS_TARGET_SIZE = 600; // Target size in CSS pixels
+    // --- Variabel State (Sama seperti sebelumnya) ---
+    let isDrawing = false;
+    let currentTool = 'freehand';
+    let currentColor = '#007aff'; // Initialize with a default
+    let currentLineWidth = 3;
+    let currentRotationOrder = 1;
+    let isReflectionEnabled = false;
+    let currentCursorStyle = 'crosshair';
+    let startX, startY, currentMouseX, currentMouseY;
+    let history = [];
+    let drawingActions = [];
+    let historyIndex = -1;
+    let currentPath = [];
+    let lastKnownCanvasState = null;
+    let rafId = null;
+    let centerX, centerY;
+    let colorPicker = null;
+    const MAX_HISTORY_SIZE = 50;
+    const pencilCursorDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAJ5JREFUOE9jZKASYKSCaxjwv7f0Y2SgKnDqAjsFVQGr4M4L/P9/ZGBgYAZiP6DmkSA1DrBqAQYYGM7/X8y/gYGBgRFFgB0H6sH//0AnAwMDQwIk58/A////MwYGBlYoYP4zMDAwMhACY5EYQ5QBZP7//zMwMDAygALmBDAwMDByMIIAAgyQ0j8wMDAwMsA6sA9A7gAxnwwMAAEEALBwG0+0i3uFAAAAAElFTkSuQmCC';
+    const CANVAS_TARGET_SIZE = 600;
 
-        // --- Setup ---
-        function resizeCanvas() {
-            // Use the container's clientWidth as the basis, respecting max-width from CSS
-            const containerWidth = canvasContainer.clientWidth;
-            if (!containerWidth || containerWidth <= 0) return;
+    // --- Setup (Termasuk resizeCanvas, applyContextSettings, applyCursorStyle, initializeColorPicker, Theme, Modal - Sama seperti sebelumnya) ---
 
-            // Use the smaller of container width or target size
-            const size = Math.min(containerWidth, CANVAS_TARGET_SIZE);
-            const dpr = window.devicePixelRatio || 1;
+    function resizeCanvas() {
+        const containerWidth = canvasContainer.clientWidth;
+        if (!containerWidth || containerWidth <= 0) return;
+        const size = Math.min(containerWidth, CANVAS_TARGET_SIZE);
+        const dpr = window.devicePixelRatio || 1;
 
-            // Check if resize is actually needed
-            if (canvas.width === Math.floor(size * dpr) && canvas.height === Math.floor(size * dpr)) {
-                 // Update center even if size didn't change pixel-wise, container might have
-                 centerX = size / 2;
-                 centerY = size / 2;
-                 drawSlices(); // Redraw guides based on new center
-                 return;
-            }
-
-            canvas.width = Math.floor(size * dpr);
-            canvas.height = Math.floor(size * dpr);
-            canvas.style.width = `${size}px`;
-            canvas.style.height = `${size}px`;
-
-            gridCanvas.width = Math.floor(size * dpr);
-            gridCanvas.height = Math.floor(size * dpr);
-            gridCanvas.style.width = `${size}px`;
-            gridCanvas.style.height = `${size}px`;
-
-            ctx.resetTransform();
-            gridCtx.resetTransform();
-            ctx.scale(dpr, dpr);
-            gridCtx.scale(dpr, dpr);
-
+        if (canvas.width === Math.floor(size * dpr) && canvas.height === Math.floor(size * dpr)) {
             centerX = size / 2;
             centerY = size / 2;
-
-            // Optional: Resize color picker if needed (might not be necessary)
-            // if (colorPicker && colorPickerContainer.clientWidth > 0) {
-            //    const pickerWidth = Math.min(280, colorPickerContainer.clientWidth > 20 ? colorPickerContainer.clientWidth - 10 : 160);
-            //    colorPicker.resize(pickerWidth);
-            // }
-
-            applyContextSettings();
-            applyCursorStyle();
             drawSlices();
-            redrawAllActions(true); // Redraw actions after resize
+            return;
         }
 
-        function applyContextSettings(targetCtx = ctx, settings = null) {
-            const lw = settings ? settings.lineWidth : currentLineWidth;
-            const col = settings ? settings.color : currentColor;
-            targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round';
-            targetCtx.lineWidth = lw; targetCtx.strokeStyle = col; targetCtx.fillStyle = col;
-        }
-        function applyCursorStyle() {
-            canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default');
-            canvas.style.cursor = '';
-            if (currentCursorStyle === 'pencil') { canvas.style.cursor = `url('${pencilCursorDataUrl}') 0 16, crosshair`; canvas.classList.add('cursor-pencil'); }
-            else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair');
-            else canvas.classList.add('cursor-default');
-        }
-         function initializeColorPicker() {
-             if (!colorPickerContainer) { console.error("Wadah #colorPickerContainer tidak ditemukan!"); return; }
-             try {
-                 const initialColor = currentColor || getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-                 const initialBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim();
-                 // Use a default width or calculate based on container, ensuring it's reasonable
-                 const containerWidth = colorPickerContainer.clientWidth;
-                 // Adjust width calculation based on the new container (controls-panel)
-                 const pickerWidth = Math.min(280, (containerWidth > 40 ? containerWidth - 20 : 180)); // Adjusted min/max
+        canvas.width = Math.floor(size * dpr);
+        canvas.height = Math.floor(size * dpr);
+        canvas.style.width = `${size}px`;
+        canvas.style.height = `${size}px`;
 
-                 colorPicker = new iro.ColorPicker(colorPickerContainer, {
-                     width: pickerWidth,
-                     color: initialColor,
-                     borderWidth: 1,
-                     borderColor: initialBorderColor,
-                     layout: [ { component: iro.ui.Box, options: { boxLightness: false } }, { component: iro.ui.Slider, options: { sliderType: 'hue' } } ],
-                     handleRadius: 7, padding: 5, sliderMargin: 12, sliderSize: 18,
-                 });
-                 colorPicker.on('color:change', function(color) { currentColor = color.hexString; applyContextSettings(); });
-             } catch (error) { console.error("Gagal menginisialisasi color picker:", error); colorPickerContainer.innerHTML = '<p style="color: var(--danger-color); font-size: 0.9em; text-align: center; padding: 1em 0;">Pemilih warna gagal dimuat.</p>'; }
+        gridCanvas.width = Math.floor(size * dpr);
+        gridCanvas.height = Math.floor(size * dpr);
+        gridCanvas.style.width = `${size}px`;
+        gridCanvas.style.height = `${size}px`;
+
+        ctx.resetTransform();
+        gridCtx.resetTransform();
+        ctx.scale(dpr, dpr);
+        gridCtx.scale(dpr, dpr);
+
+        centerX = size / 2;
+        centerY = size / 2;
+
+        applyContextSettings();
+        applyCursorStyle();
+        drawSlices();
+        redrawAllActions(true);
+    }
+
+    function applyContextSettings(targetCtx = ctx, settings = null) {
+        const lw = settings ? settings.lineWidth : currentLineWidth;
+        const col = settings ? settings.color : currentColor;
+        targetCtx.lineCap = 'round';
+        targetCtx.lineJoin = 'round';
+        targetCtx.lineWidth = lw;
+        targetCtx.strokeStyle = col;
+        targetCtx.fillStyle = col;
+    }
+
+    function applyCursorStyle() {
+        canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default');
+        canvas.style.cursor = '';
+        if (currentCursorStyle === 'pencil') { canvas.style.cursor = `url('${pencilCursorDataUrl}') 0 16, crosshair`; canvas.classList.add('cursor-pencil'); }
+        else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair');
+        else canvas.classList.add('cursor-default');
+    }
+
+    function initializeColorPicker() {
+         if (!colorPickerContainer) { console.error("Wadah #colorPickerContainer tidak ditemukan!"); return; }
+         try {
+             currentColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); // Get initial color AFTER theme
+             const initialBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim();
+             const containerWidth = colorPickerContainer.clientWidth;
+             const pickerWidth = Math.min(280, (containerWidth > 40 ? containerWidth - 20 : 180));
+
+             colorPicker = new iro.ColorPicker(colorPickerContainer, {
+                 width: pickerWidth,
+                 color: currentColor, // Use the retrieved color
+                 borderWidth: 1,
+                 borderColor: initialBorderColor,
+                 layout: [ { component: iro.ui.Box, options: { boxLightness: false } }, { component: iro.ui.Slider, options: { sliderType: 'hue' } } ],
+                 handleRadius: 7, padding: 5, sliderMargin: 12, sliderSize: 18,
+             });
+             colorPicker.on('color:change', function(color) { currentColor = color.hexString; applyContextSettings(); });
+         } catch (error) { console.error("Gagal menginisialisasi color picker:", error); colorPickerContainer.innerHTML = '<p style="color: var(--danger-color); font-size: 0.9em; text-align: center; padding: 1em 0;">Pemilih warna gagal dimuat.</p>'; }
+     }
+
+    function applyTheme(theme) {
+        const toggleText = darkModeToggle.querySelector('.toggle-text');
+        if (theme === 'dark') { document.body.classList.add('dark-mode'); if (toggleText) toggleText.textContent = 'Mode Terang'; localStorage.setItem('theme', 'dark'); }
+        else { document.body.classList.remove('dark-mode'); if (toggleText) toggleText.textContent = 'Mode Gelap'; localStorage.setItem('theme', 'light'); }
+        if (colorPicker) {
+             setTimeout(() => {
+                 const newBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim();
+                 colorPicker.setOptions({ borderColor: newBorderColor });
+                 // Update current color based on theme if it was the default primary
+                 // Note: This might reset user's chosen color if they picked the default primary. Consider alternatives.
+                 // currentColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                 // colorPicker.color.hexString = currentColor; // Update picker UI too
+                 // applyContextSettings(); // Apply the new color
+             }, 50);
          }
-        function applyTheme(theme) {
-            const toggleText = darkModeToggle.querySelector('.toggle-text');
-            if (theme === 'dark') { document.body.classList.add('dark-mode'); if (toggleText) toggleText.textContent = 'Mode Terang'; localStorage.setItem('theme', 'dark'); }
-            else { document.body.classList.remove('dark-mode'); if (toggleText) toggleText.textContent = 'Mode Gelap'; localStorage.setItem('theme', 'light'); }
-            // Update color picker border on theme change
-            if (colorPicker) {
-                 // Give CSS variables a moment to update
-                 setTimeout(() => {
-                     const newBorderColor = getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim();
-                     colorPicker.setOptions({ borderColor: newBorderColor });
-                 }, 50);
+         drawSlices();
+    }
+    function toggleTheme() { if (document.body.classList.contains('dark-mode')) { applyTheme('light'); } else { applyTheme('dark'); } }
+    function initializeTheme() { const savedTheme = localStorage.getItem('theme'); const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; if (savedTheme) { applyTheme(savedTheme); } else if (prefersDark) { applyTheme('dark'); } else { applyTheme('light'); } }
+    function showInfoModal() { infoModal.style.display = 'flex'; infoModal.classList.add('is-open'); setTimeout(() => modalCloseBtn.focus(), 50); }
+    function hideInfoModal() { infoModal.classList.remove('is-open'); setTimeout(() => { infoModal.style.display = 'none'; infoBtn.focus(); }, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-speed') || '0.2') * 1000); }
+    infoBtn.addEventListener('click', showInfoModal);
+    modalCloseBtn.addEventListener('click', hideInfoModal);
+    infoModal.addEventListener('click', (event) => { if (event.target === infoModal) hideInfoModal(); });
+    window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'flex') hideInfoModal(); });
+    darkModeToggle.addEventListener('click', toggleTheme);
+
+    // --- Event Listeners (handleControlChange, showSlicesCheck, clearBtn, undo/redo, save/load, download, keyboard shortcuts, mousedown/touchstart - Sama seperti sebelumnya) ---
+
+    drawingToolsBar.addEventListener('change', handleControlChange);
+    controlsPanel.addEventListener('change', handleControlChange);
+
+    function handleControlChange(e) {
+        const target = e.target;
+        if ((target.type === 'radio' || target.type === 'checkbox') && target.closest('.control-group')) {
+            const prevRot = currentRotationOrder;
+            const prevRef = isReflectionEnabled;
+            const prevCur = currentCursorStyle;
+
+            updateSettings();
+            updateSelectedLabels();
+
+            if (currentCursorStyle !== prevCur) applyCursorStyle();
+
+            if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) {
+                updateRotationLabels();
+                drawSlices();
+                redrawAllActions();
+            }
+
+             if (target.name === 'tool' || target.name === 'lineWidth') {
+                 applyContextSettings();
              }
-             drawSlices(); // Redraw slices with potentially new colors
         }
-        function toggleTheme() { if (document.body.classList.contains('dark-mode')) { applyTheme('light'); } else { applyTheme('dark'); } }
-        function initializeTheme() { const savedTheme = localStorage.getItem('theme'); const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; if (savedTheme) { applyTheme(savedTheme); } else if (prefersDark) { applyTheme('dark'); } else { applyTheme('light'); } }
-        function showInfoModal() { infoModal.style.display = 'flex'; infoModal.classList.add('is-open'); setTimeout(() => modalCloseBtn.focus(), 50); }
-        function hideInfoModal() { infoModal.classList.remove('is-open'); setTimeout(() => { infoModal.style.display = 'none'; infoBtn.focus(); }, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-speed') || '0.2') * 1000); }
-        infoBtn.addEventListener('click', showInfoModal);
-        modalCloseBtn.addEventListener('click', hideInfoModal);
-        infoModal.addEventListener('click', (event) => { if (event.target === infoModal) hideInfoModal(); });
-        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'flex') hideInfoModal(); });
-        darkModeToggle.addEventListener('click', toggleTheme);
+    }
+    showSlicesCheck.addEventListener('change', drawSlices);
+    clearBtn.addEventListener('click', () => { if (confirm("Apakah Anda yakin ingin membersihkan seluruh gambar? Tindakan ini tidak dapat diurungkan setelah disimpan.")) { clearCanvas(false); } });
+    undoBtn.addEventListener('click', undo);
+    redoBtn.addEventListener('click', redo);
+    saveBtn.addEventListener('click', saveJson);
+    loadBtn.addEventListener('click', () => loadFile.click());
+    loadFile.addEventListener('change', loadJson);
+    downloadImageBtn.addEventListener('click', downloadCanvasImage);
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || infoModal.style.display === 'flex') return;
+        if (e.ctrlKey || e.metaKey) {
+             if (e.key === 'z') { e.preventDefault(); undo(); } else if (e.key === 'y') { e.preventDefault(); redo(); }
+             else if (e.key === 's') { e.preventDefault(); saveJson(); } else if (e.key === 'o') { e.preventDefault(); loadFile.click(); }
+         }
+    });
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
 
-        // Add event listeners to both control areas
-        drawingToolsBar.addEventListener('change', handleControlChange);
-        controlsPanel.addEventListener('change', handleControlChange);
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resizeCanvas, 150);
+    });
 
-        function handleControlChange(e) {
-            const target = e.target;
-            // Check if it's a radio or checkbox within a recognized control group
-            if ((target.type === 'radio' || target.type === 'checkbox') && target.closest('.control-group')) {
-                const prevRot = currentRotationOrder;
-                const prevRef = isReflectionEnabled;
-                const prevCur = currentCursorStyle;
+    // --- State Management (updateSettings, updateSelectedLabels, updateRotationLabels, saveState, restoreState, redrawBasedOnActions, undo, redo, updateUndoRedoButtons, clearCanvas, updateLastKnownCanvasState - Sama seperti sebelumnya) ---
 
-                updateSettings(); // Update state variables from DOM
-                updateSelectedLabels(); // Update visual selection state
-
-                if (currentCursorStyle !== prevCur) applyCursorStyle();
-
-                // If symmetry settings changed, update labels, guides, and redraw
-                if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) {
-                    updateRotationLabels();
-                    drawSlices();
-                    redrawAllActions(); // Redraw with new symmetry
+    function updateSettings() {
+        currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand';
+        currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10);
+        currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10);
+        isReflectionEnabled = reflectionToggle.checked;
+        currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair';
+        // Color is updated via color picker event listener
+    }
+    function updateSelectedLabels() {
+        controlGroups.forEach(group => {
+            group.querySelectorAll('label').forEach(label => {
+                const input = label.querySelector('input[type="radio"], input[type="checkbox"]');
+                if (input && (label.querySelector('.custom-radio') || label.querySelector('.custom-checkbox') || input.id === 'reflectionToggle')) {
+                     label.classList.toggle('selected', input.checked);
                 }
+             });
+         });
+         const reflectionLabel = reflectionToggle.closest('label');
+         if (reflectionLabel) {
+             reflectionLabel.classList.toggle('selected', reflectionToggle.checked);
+         }
+    }
+    function updateRotationLabels() {
+         const prefix = isReflectionEnabled ? 'D' : 'C';
+         rotationTextSpans.forEach(span => { const radio = span.closest('label')?.querySelector('input[name="rotationOrder"]'); if (radio) { const n = radio.value; span.innerHTML = `${n} (${prefix}<sub>${n}</sub>)`; } });
+     }
+    function saveState() {
+        if (historyIndex < drawingActions.length - 1) {
+            drawingActions.splice(historyIndex + 1);
+            history.splice(historyIndex + 1);
+        }
+        try {
+            const currentStateDataUrl = canvas.toDataURL();
+            if (history.length > 0 && history[historyIndex] === currentStateDataUrl) {
+                updateUndoRedoButtons();
+                return;
+            }
+            history.push(currentStateDataUrl);
+            historyIndex = history.length - 1;
+            if (history.length > MAX_HISTORY_SIZE) {
+                const itemsToRemove = history.length - MAX_HISTORY_SIZE;
+                history.splice(0, itemsToRemove);
+                drawingActions.splice(0, itemsToRemove);
+                historyIndex -= itemsToRemove;
+            }
+        } catch (e) {
+            console.error("Gagal menyimpan state kanvas:", e);
+        } finally {
+            updateUndoRedoButtons();
+        }
+    }
+    function restoreState(targetHistoryIndex) {
+         if (targetHistoryIndex < -1 || targetHistoryIndex >= history.length) return;
+         historyIndex = targetHistoryIndex;
+         const dpr = window.devicePixelRatio || 1;
+         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+         if (historyIndex === -1) {
+             updateLastKnownCanvasState();
+         } else {
+             const img = new Image();
+             img.onload = () => {
+                 ctx.drawImage(img, 0, 0, canvas.width / dpr, canvas.height / dpr);
+                 updateLastKnownCanvasState();
+             };
+             img.onerror = (err) => {
+                 console.error("Gagal memuat gambar riwayat:", err);
+                 redrawBasedOnActions(historyIndex);
+             };
+             img.src = history[historyIndex];
+         }
+         updateUndoRedoButtons();
+     }
+    function redrawBasedOnActions(targetActionIndex) {
+        const dpr = window.devicePixelRatio || 1;
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        const actionsToRedraw = drawingActions.slice(0, targetActionIndex + 1);
+        const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
+        actionsToRedraw.forEach(action => {
+            if (action && action.tool) {
+                applyContextSettings(ctx, action);
+                drawAction(action, ctx);
+            }
+        });
+        applyContextSettings(ctx, originalSettings);
+        updateLastKnownCanvasState();
+    }
+    function undo() { if (historyIndex >= 0) { restoreState(historyIndex - 1); } }
+    function redo() { if (historyIndex < history.length - 1) { restoreState(historyIndex + 1); } }
+    function updateUndoRedoButtons() {
+         undoBtn.disabled = historyIndex < 0;
+         redoBtn.disabled = historyIndex >= history.length - 1;
+         clearBtn.disabled = history.length === 0 || (history.length === 1 && historyIndex === -1);
+    }
+    function clearCanvas(isInternal = false) {
+         const dpr = window.devicePixelRatio || 1;
+         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+         gridCtx.clearRect(0, 0, gridCanvas.width / dpr, gridCanvas.height / dpr);
+         if (!isInternal) {
+             drawingActions = [];
+             history = [];
+             historyIndex = -1;
+             lastKnownCanvasState = null;
+             drawSlices();
+             saveState();
+         } else {
+             updateLastKnownCanvasState();
+         }
+         updateUndoRedoButtons();
+    }
+    function updateLastKnownCanvasState() {
+         if (isDrawing || !canvas.width || !canvas.height) return;
+         try {
+             const dataUrl = canvas.toDataURL();
+             const img = new Image();
+             img.onload = () => { lastKnownCanvasState = img; };
+             img.onerror = () => { lastKnownCanvasState = null; console.warn("Failed to cache canvas state."); };
+             img.src = dataUrl;
+         } catch (e) {
+             console.error("Error creating canvas state cache:", e);
+             lastKnownCanvasState = null;
+         }
+    }
 
-                 // If tool or line width changed, update the drawing context immediately
-                 if (target.name === 'tool' || target.name === 'lineWidth') {
-                     applyContextSettings();
-                 }
-                 // Note: Color changes are handled by the iro.js 'color:change' event
+    // --- Drawing Logic ---
+    function getMousePos(evt) {
+         const rect = canvas.getBoundingClientRect();
+         const dpr = window.devicePixelRatio || 1;
+         const scaleX = canvas.width / dpr / rect.width;
+         const scaleY = canvas.height / dpr / rect.height;
+         const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0;
+         const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0;
+         return {
+             x: (clientX - rect.left) * scaleX,
+             y: (clientY - rect.top) * scaleY
+         };
+    }
+
+    function startDrawing(e) {
+        if (e.button && e.button !== 0) return;
+        isDrawing = true;
+        const pos = getMousePos(e);
+        startX = pos.x;
+        startY = pos.y;
+        currentMouseX = startX;
+        currentMouseY = startY;
+
+        if (currentTool === 'freehand') {
+            currentPath = [{ x: startX, y: startY }];
+        }
+        applyContextSettings();
+
+        window.addEventListener('mousemove', handleDrawingMove);
+        window.addEventListener('mouseup', stopDrawing);
+        window.addEventListener('touchmove', handleDrawingMove, { passive: false });
+        window.addEventListener('touchend', stopDrawing);
+        window.addEventListener('touchcancel', stopDrawing);
+
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(drawingLoop);
+    }
+
+    function handleDrawingMove(e) {
+        if (!isDrawing) return;
+        if (e.type === 'touchmove' && e.touches.length === 1) e.preventDefault();
+        const pos = getMousePos(e);
+        currentMouseX = pos.x;
+        currentMouseY = pos.y;
+        if (currentTool === 'freehand') {
+            const lastPoint = currentPath[currentPath.length - 1];
+            const dx = currentMouseX - lastPoint.x;
+            const dy = currentMouseY - lastPoint.y;
+            const minMoveDistSq = 4;
+            if (dx * dx + dy * dy > minMoveDistSq) {
+                currentPath.push({ x: currentMouseX, y: currentMouseY });
             }
         }
-        showSlicesCheck.addEventListener('change', drawSlices);
-        clearBtn.addEventListener('click', () => { if (confirm("Apakah Anda yakin ingin membersihkan seluruh gambar? Tindakan ini tidak dapat diurungkan setelah disimpan.")) { clearCanvas(false); } });
-        undoBtn.addEventListener('click', undo);
-        redoBtn.addEventListener('click', redo);
-        saveBtn.addEventListener('click', saveJson);
-        loadBtn.addEventListener('click', () => loadFile.click());
-        loadFile.addEventListener('change', loadJson);
-        downloadImageBtn.addEventListener('click', downloadCanvasImage);
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || infoModal.style.display === 'flex') return;
-            if (e.ctrlKey || e.metaKey) {
-                 if (e.key === 'z') { e.preventDefault(); undo(); } else if (e.key === 'y') { e.preventDefault(); redo(); }
-                 else if (e.key === 's') { e.preventDefault(); saveJson(); } else if (e.key === 'o') { e.preventDefault(); loadFile.click(); }
-             }
-        });
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
+    }
 
-        // Debounced resize handler
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(resizeCanvas, 150);
-        });
+    function drawingLoop() {
+        if (!isDrawing) { rafId = null; return; }
+        const dpr = window.devicePixelRatio || 1;
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
-        function updateSettings() {
-            currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand';
-            currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10);
-            currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10);
-            isReflectionEnabled = reflectionToggle.checked;
-            currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair';
-            // Color is updated via color picker event listener
+        if (lastKnownCanvasState) {
+            try {
+                ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr);
+            } catch (error) {
+                console.error("Error drawing cached state:", error);
+                redrawAllActions(true);
+            }
+        } else {
+            redrawAllActions(true);
         }
-        function updateSelectedLabels() {
-            // Update labels in both control areas
-            controlGroups.forEach(group => {
-                group.querySelectorAll('label').forEach(label => {
-                    const input = label.querySelector('input[type="radio"], input[type="checkbox"]');
-                    // Check if it has a custom control span OR is the reflection toggle label
-                    if (input && (label.querySelector('.custom-radio') || label.querySelector('.custom-checkbox') || input.id === 'reflectionToggle')) {
-                         label.classList.toggle('selected', input.checked);
-                    }
-                 });
-             });
-             // Special handling for reflection toggle if it doesn't use custom-checkbox visually
-             const reflectionLabel = reflectionToggle.closest('label');
-             if (reflectionLabel) {
-                 reflectionLabel.classList.toggle('selected', reflectionToggle.checked);
-             }
+
+        applyContextSettings();
+        const tempAction = {
+            tool: currentTool, color: currentColor, lineWidth: currentLineWidth,
+            startX: startX, startY: startY, endX: currentMouseX, endY: currentMouseY,
+            path: (currentTool === 'freehand') ? currentPath : null
+        };
+        drawAction(tempAction, ctx); // Draw temporary action with symmetry
+
+        rafId = requestAnimationFrame(drawingLoop);
+    }
+
+    function stopDrawing(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+        window.removeEventListener('mousemove', handleDrawingMove);
+        window.removeEventListener('mouseup', stopDrawing);
+        window.removeEventListener('touchmove', handleDrawingMove);
+        window.removeEventListener('touchend', stopDrawing);
+        window.removeEventListener('touchcancel', stopDrawing);
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+
+        const pos = getMousePos(e);
+        const endX = (e.type === 'mouseup' || e.type === 'touchend') ? pos.x : currentMouseX;
+        const endY = (e.type === 'mouseup' || e.type === 'touchend') ? pos.y : currentMouseY;
+
+        if (currentTool === 'freehand' && currentPath.length > 0) {
+            const last = currentPath[currentPath.length - 1];
+            if (Math.hypot(last.x - endX, last.y - endY) > 0.1) {
+                currentPath.push({ x: endX, y: endY });
+            }
         }
-        function updateRotationLabels() {
-             const prefix = isReflectionEnabled ? 'D' : 'C';
-             rotationTextSpans.forEach(span => { const radio = span.closest('label')?.querySelector('input[name="rotationOrder"]'); if (radio) { const n = radio.value; span.innerHTML = `${n} (${prefix}<sub>${n}</sub>)`; } });
-         }
-        function saveState() {
-            // Prune future history if we are undoing
+
+        let addAction = false;
+        const distSq = (startX - endX)**2 + (startY - endY)**2;
+        const minPixelMoveSq = 4;
+
+        if (currentTool === 'freehand') {
+            addAction = currentPath.length > 0;
+        } else {
+            addAction = distSq >= minPixelMoveSq || currentTool === 'filledRect' || currentTool === 'filledOval';
+        }
+
+        if (addAction) {
             if (historyIndex < drawingActions.length - 1) {
                 drawingActions.splice(historyIndex + 1);
                 history.splice(historyIndex + 1);
             }
+            const action = {
+                tool: currentTool, color: currentColor, lineWidth: currentLineWidth,
+                startX: startX, startY: startY, endX: endX, endY: endY,
+                path: (currentTool === 'freehand' && currentPath) ? [...currentPath] : null
+            };
+            drawingActions.push(action);
 
-            try {
-                // Get current canvas state
-                const currentStateDataUrl = canvas.toDataURL();
-
-                // Avoid saving identical consecutive states
-                if (history.length > 0 && history[historyIndex] === currentStateDataUrl) {
-                    updateUndoRedoButtons(); // Still update buttons in case state changed programmatically
-                    return;
-                }
-
-                // Add to history
-                history.push(currentStateDataUrl);
-                historyIndex = history.length - 1;
-
-                // Limit history size
-                if (history.length > MAX_HISTORY_SIZE) {
-                    const itemsToRemove = history.length - MAX_HISTORY_SIZE;
-                    history.splice(0, itemsToRemove);
-                    // Also remove corresponding actions
-                    drawingActions.splice(0, itemsToRemove);
-                    historyIndex -= itemsToRemove; // Adjust index
-                }
-            } catch (e) {
-                console.error("Gagal menyimpan state kanvas:", e);
-                // Potentially disable undo/redo or notify user
-            } finally {
-                updateUndoRedoButtons(); // Update button states
-            }
-        }
-        function restoreState(targetHistoryIndex) {
-             if (targetHistoryIndex < -1 || targetHistoryIndex >= history.length) return; // Invalid index
-
-             historyIndex = targetHistoryIndex;
-             const dpr = window.devicePixelRatio || 1;
-             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); // Clear canvas
-
-             if (historyIndex === -1) {
-                 // If restoring to the initial empty state
-                 updateLastKnownCanvasState(); // Cache the empty state
-             } else {
-                 // Load the image from the history array
-                 const img = new Image();
-                 img.onload = () => {
-                     ctx.drawImage(img, 0, 0, canvas.width / dpr, canvas.height / dpr);
-                     updateLastKnownCanvasState(); // Cache the restored state
-                 };
-                 img.onerror = (err) => {
-                     console.error("Gagal memuat gambar riwayat:", err);
-                     // Fallback: redraw from actions up to this point
-                     redrawBasedOnActions(historyIndex);
-                 };
-                 img.src = history[historyIndex];
-             }
-             updateUndoRedoButtons(); // Update button states
-         }
-        function redrawBasedOnActions(targetActionIndex) {
-            // Clear canvas first
             const dpr = window.devicePixelRatio || 1;
             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-
-            // Get the actions up to the target index
-            const actionsToRedraw = drawingActions.slice(0, targetActionIndex + 1);
-
-            // Store original settings to restore later
-            const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
-
-            // Draw each action sequentially
-            actionsToRedraw.forEach(action => {
-                if (action && action.tool) {
-                    applyContextSettings(ctx, action); // Apply action-specific settings
-                    drawAction(action, ctx); // Draw the action with symmetry
-                }
-            });
-
-            // Restore current settings for future drawing
-            applyContextSettings(ctx, originalSettings);
-
-            // Update the cached state
-            updateLastKnownCanvasState();
-        }
-        function undo() { if (historyIndex >= 0) { restoreState(historyIndex - 1); } }
-        function redo() { if (historyIndex < history.length - 1) { restoreState(historyIndex + 1); } }
-        function updateUndoRedoButtons() {
-             undoBtn.disabled = historyIndex < 0;
-             redoBtn.disabled = historyIndex >= history.length - 1;
-             // Disable clear if history is empty or only contains the initial empty state
-             clearBtn.disabled = history.length === 0 || (history.length === 1 && historyIndex === -1);
-        }
-        function clearCanvas(isInternal = false) {
-             const dpr = window.devicePixelRatio || 1;
-             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-             gridCtx.clearRect(0, 0, gridCanvas.width / dpr, gridCanvas.height / dpr);
-
-             if (!isInternal) {
-                 // Full clear initiated by user
-                 drawingActions = [];
-                 history = [];
-                 historyIndex = -1;
-                 lastKnownCanvasState = null;
-                 drawSlices(); // Redraw guides if they were visible
-                 saveState(); // Save the new empty state
-             } else {
-                 // Internal clear (e.g., before loading) - just update cache
-                 updateLastKnownCanvasState();
-             }
-             updateUndoRedoButtons(); // Update button states
-        }
-        function updateLastKnownCanvasState() {
-             // Avoid caching during active drawing or if canvas is invalid
-             if (isDrawing || !canvas.width || !canvas.height) return;
-             try {
-                 const dataUrl = canvas.toDataURL();
-                 const img = new Image();
-                 img.onload = () => {
-                     lastKnownCanvasState = img; // Store the image object
-                 };
-                 img.onerror = () => {
-                     lastKnownCanvasState = null; // Clear cache on error
-                     console.warn("Failed to cache canvas state.");
-                 };
-                 img.src = dataUrl;
-             } catch (e) {
-                 console.error("Error creating canvas state cache:", e);
-                 lastKnownCanvasState = null; // Clear cache on error
-             }
-        }
-        function getMousePos(evt) {
-             const rect = canvas.getBoundingClientRect();
-             const dpr = window.devicePixelRatio || 1;
-             // Calculate scaling factors based on actual canvas buffer size vs CSS display size
-             const scaleX = canvas.width / dpr / rect.width;
-             const scaleY = canvas.height / dpr / rect.height;
-             // Get client coordinates, handling both mouse and touch events
-             const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0;
-             const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0;
-             // Calculate canvas-local coordinates
-             return {
-                 x: (clientX - rect.left) * scaleX,
-                 y: (clientY - rect.top) * scaleY
-             };
-        }
-        function startDrawing(e) {
-             // Ignore clicks that aren't the primary button (left-click or touch)
-             if (e.button && e.button !== 0) return;
-
-             isDrawing = true;
-             const pos = getMousePos(e);
-             startX = pos.x;
-             startY = pos.y;
-             currentMouseX = startX;
-             currentMouseY = startY;
-
-             if (currentTool === 'freehand') {
-                 currentPath = [{ x: startX, y: startY }]; // Start the path
-             }
-
-             applyContextSettings(); // Ensure context has current settings
-
-             // Add event listeners for move and end events
-             window.addEventListener('mousemove', handleDrawingMove);
-             window.addEventListener('mouseup', stopDrawing);
-             window.addEventListener('touchmove', handleDrawingMove, { passive: false }); // Prevent scroll on touch drag
-             window.addEventListener('touchend', stopDrawing);
-             window.addEventListener('touchcancel', stopDrawing); // Handle unexpected touch interruptions
-
-             // Start the drawing loop if not already running
-             if (rafId) cancelAnimationFrame(rafId);
-             rafId = requestAnimationFrame(drawingLoop);
-        }
-        function handleDrawingMove(e) {
-             if (!isDrawing) return;
-             // Prevent default actions like scrolling during touch drawing
-             if (e.type === 'touchmove' && e.touches.length === 1) e.preventDefault();
-
-             const pos = getMousePos(e);
-             currentMouseX = pos.x;
-             currentMouseY = pos.y;
-
-             if (currentTool === 'freehand') {
-                 const lastPoint = currentPath[currentPath.length - 1];
-                 const dx = currentMouseX - lastPoint.x;
-                 const dy = currentMouseY - lastPoint.y;
-                 const minMoveDistSq = 4; // Minimum squared distance to add a new point
-                 // Add point only if moved sufficiently to avoid redundant points
-                 if (dx * dx + dy * dy > minMoveDistSq) {
-                     currentPath.push({ x: currentMouseX, y: currentMouseY });
-                 }
-             }
-             // Note: The actual drawing happens in the drawingLoop
-        }
-        function drawingLoop() {
-             if (!isDrawing) {
-                 rafId = null; // Stop the loop if not drawing
-                 return;
-             }
-             const dpr = window.devicePixelRatio || 1;
-
-             // 1. Clear the canvas
-             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-
-             // 2. Restore the last committed state
-             if (lastKnownCanvasState) {
-                 try {
-                     ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr);
-                 } catch (error) {
-                     console.error("Error drawing cached state:", error);
-                     // Fallback: redraw all previous actions if cache fails
-                     redrawAllActions(true); // true to skip re-caching immediately
-                 }
-             } else {
-                 // If no cache, redraw all previous actions
-                 redrawAllActions(true);
-             }
-
-             // 3. Apply current drawing settings
-             applyContextSettings();
-
-             // 4. Draw the temporary action (what the user is currently drawing)
-             const tempAction = {
-                 tool: currentTool,
-                 color: currentColor,
-                 lineWidth: currentLineWidth,
-                 startX: startX,
-                 startY: startY,
-                 endX: currentMouseX,
-                 endY: currentMouseY,
-                 path: (currentTool === 'freehand') ? currentPath : null
-             };
-             drawAction(tempAction, ctx); // Draw with symmetry applied
-
-             // 5. Request the next frame
-             rafId = requestAnimationFrame(drawingLoop);
-        }
-        function stopDrawing(e) {
-             if (!isDrawing) return;
-             isDrawing = false;
-
-             // Remove event listeners
-             window.removeEventListener('mousemove', handleDrawingMove);
-             window.removeEventListener('mouseup', stopDrawing);
-             window.removeEventListener('touchmove', handleDrawingMove);
-             window.removeEventListener('touchend', stopDrawing);
-             window.removeEventListener('touchcancel', stopDrawing);
-
-             // Cancel the animation frame loop
-             if (rafId) cancelAnimationFrame(rafId);
-             rafId = null;
-
-             // Get final position
-             const pos = getMousePos(e);
-             // Use final position if available, otherwise last known mouse position
-             const endX = (e.type === 'mouseup' || e.type === 'touchend') ? pos.x : currentMouseX;
-             const endY = (e.type === 'mouseup' || e.type === 'touchend') ? pos.y : currentMouseY;
-
-             // Finalize freehand path
-             if (currentTool === 'freehand' && currentPath.length > 0) {
-                 const last = currentPath[currentPath.length - 1];
-                 // Add the final point if it's different enough from the last
-                 if (Math.hypot(last.x - endX, last.y - endY) > 0.1) {
-                     currentPath.push({ x: endX, y: endY });
-                 }
-             }
-
-             // Determine if the action should be added to history
-             let addAction = false;
-             const distSq = (startX - endX)**2 + (startY - endY)**2;
-             const minPixelMoveSq = 4; // Minimum movement squared to register as an action (for non-freehand)
-
-             if (currentTool === 'freehand') {
-                 addAction = currentPath.length > 0; // Add if path has points
-             } else {
-                 // Add if moved enough OR if it's a filled shape (even a click should draw a dot)
-                 addAction = distSq >= minPixelMoveSq || currentTool === 'filledRect' || currentTool === 'filledOval';
-             }
-
-             if (addAction) {
-                 // Prune future history if we were undoing
-                 if (historyIndex < drawingActions.length - 1) {
-                     drawingActions.splice(historyIndex + 1);
-                     history.splice(historyIndex + 1);
-                 }
-
-                 // Create the final action object
-                 const action = {
-                     tool: currentTool,
-                     color: currentColor,
-                     lineWidth: currentLineWidth,
-                     startX: startX,
-                     startY: startY,
-                     endX: endX,
-                     endY: endY,
-                     path: (currentTool === 'freehand' && currentPath) ? [...currentPath] : null // Clone path
-                 };
-                 drawingActions.push(action); // Add action to the list
-
-                 // Redraw the canvas including the new final action
-                 const dpr = window.devicePixelRatio || 1;
-                 ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-                 if(lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr); // Draw previous state
-                 applyContextSettings(ctx, action); // Apply action settings
-                 drawAction(action, ctx); // Draw the final action
-                 applyContextSettings(); // Restore current settings
-
-                 saveState(); // Save the new state to history
-
-             } else {
-                 // If no action was added (e.g., just a click with non-filled tool),
-                 // simply restore the last known state visually.
-                 const dpr = window.devicePixelRatio || 1;
-                 ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-                 if (lastKnownCanvasState) {
-                     ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr);
-                 } else {
-                     redrawAllActions(true); // Fallback if no cache
-                 }
-                 updateUndoRedoButtons(); // Ensure buttons reflect the unchanged state
-             }
-
-             currentPath = []; // Reset the path for the next drawing
-             updateLastKnownCanvasState(); // Cache the final state
-        }
-        function redrawAllActions(skipCacheUpdate = false) {
-             const dpr = window.devicePixelRatio || 1;
-             ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); // Clear canvas
-
-             // Store current settings to restore after redrawing
-             const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
-
-             // Get the actions up to the current history index
-             const actionsToDraw = drawingActions.slice(0, historyIndex + 1);
-
-             // Iterate and draw each action
-             actionsToDraw.forEach((action) => {
-                 if(action && action.tool) {
-                     applyContextSettings(ctx, action); // Set context for this action
-                     drawAction(action, ctx); // Draw the action with symmetry
-                 }
-             });
-
-             // Restore the live settings
-             applyContextSettings(ctx, originalSettings);
-
-             // Update the cache unless explicitly skipped
-             if (!skipCacheUpdate) {
-                 updateLastKnownCanvasState();
-             }
-
-             updateUndoRedoButtons(); // Ensure buttons are correct
-        }
-        function drawAction(action, targetCtx) {
-             if (!action || !action.tool) return;
-
-             if (action.tool === 'freehand') {
-                 // Handle freehand drawing
-                 if (action.path && action.path.length > 0) {
-                     // Apply symmetry transformations to the path
-                     const transformedPaths = applySymmetryToPath(action.path);
-                     // Draw each transformed path
-                     transformedPaths.forEach(p => drawFreehandPath(p, targetCtx));
-                 }
-             } else {
-                 // Handle primitive shapes (lines, rects, ovals)
-                 // Apply symmetry transformations to start and end points
-                 const transformedPoints = applySymmetry(action.startX, action.startY, action.endX, action.endY);
-                 // Check if it was effectively a click (minimal movement)
-                 const isClickLike = Math.hypot(action.startX - action.endX, action.startY - action.endY) < 1.0;
-
-                 // Draw each transformed primitive
-                 transformedPoints.forEach(p => {
-                     // If it's a filled shape and was just a click, draw a dot instead of a tiny shape
-                     if ((action.tool === 'filledRect' || action.tool === 'filledOval') && isClickLike) {
-                         drawDot(p.x1, p.y1, targetCtx); // Draw dot at the start point
-                     } else {
-                         // Otherwise, draw the primitive shape
-                         drawPrimitive(p.x1, p.y1, p.x2, p.y2, action.tool, targetCtx);
-                     }
-                 });
-             }
-        }
-        function applySymmetry(x1, y1, x2, y2) {
-             const points = [];
-             const N = currentRotationOrder;
-             const reflect = isReflectionEnabled;
-             const angleInc = (N > 0) ? (2 * Math.PI) / N : 0; // Angle increment per rotation
-
-             // Helper function to transform a single point
-             const transformPt = (x, y, angle, doReflect) => {
-                 // Translate point to origin
-                 let cX = x - centerX;
-                 let cY = y - centerY;
-
-                 // Apply reflection if needed (across y-axis relative to center)
-                 if (doReflect) {
-                     cX = -cX;
-                 }
-
-                 // Apply rotation
-                 const cosA = Math.cos(angle);
-                 const sinA = Math.sin(angle);
-                 const rX = cX * cosA - cY * sinA;
-                 const rY = cX * sinA + cY * cosA;
-
-                 // Translate point back
-                 return { x: rX + centerX, y: rY + centerY };
-             };
-
-             // Iterate through rotations
-             for (let i = 0; i < N; i++) {
-                 const angle = i * angleInc;
-
-                 // Apply rotation to start and end points
-                 const p1Rotated = transformPt(x1, y1, angle, false);
-                 const p2Rotated = transformPt(x2, y2, angle, false);
-                 points.push({ x1: p1Rotated.x, y1: p1Rotated.y, x2: p2Rotated.x, y2: p2Rotated.y });
-
-                 // Apply reflection + rotation if enabled
-                 if (reflect && N > 0) { // N > 0 check prevents double reflection for D1
-                     const p1ReflectedRotated = transformPt(x1, y1, angle, true);
-                     const p2ReflectedRotated = transformPt(x2, y2, angle, true);
-                     points.push({ x1: p1ReflectedRotated.x, y1: p1ReflectedRotated.y, x2: p2ReflectedRotated.x, y2: p2ReflectedRotated.y });
-                 }
-             }
-
-             // Special case for D1 (reflection only when N=1)
-             // The loop above handles C1 (no change). We need to add the reflection separately.
-             if (N === 1 && reflect) {
-                 const p1Reflected = transformPt(x1, y1, 0, true);
-                 const p2Reflected = transformPt(x2, y2, 0, true);
-                 // Only add if the reflected points are different from the original
-                 // (avoids duplicates if drawn exactly on the reflection line)
-                 const isDifferent = Math.hypot(x1 - p1Reflected.x, y1 - p1Reflected.y) > 1e-6 ||
-                                     Math.hypot(x2 - p2Reflected.x, y2 - p2Reflected.y) > 1e-6;
-                 if (isDifferent) {
-                     points.push({ x1: p1Reflected.x, y1: p1Reflected.y, x2: p2Reflected.x, y2: p2Reflected.y });
-                 }
-             }
-
-             return points;
-        }
-        function applySymmetryToPath(path) {
-             if (!path || path.length === 0) return []; // Empty path, return empty array
-
-             const transformedPaths = [];
-             const N = currentRotationOrder;
-             const reflect = isReflectionEnabled;
-             const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
-
-             // Helper function to transform a single point (same as in applySymmetry)
-             const transformPt = (x, y, angle, doReflect) => {
-                 let cX = x - centerX;
-                 let cY = y - centerY;
-                 if (doReflect) cX = -cX;
-                 const cosA = Math.cos(angle);
-                 const sinA = Math.sin(angle);
-                 const rX = cX * cosA - cY * sinA;
-                 const rY = cX * sinA + cY * cosA;
-                 return { x: rX + centerX, y: rY + centerY };
-             };
-
-             // Helper function to apply a transformation to the entire path
-             const applyTransformToPath = (originalPath, angle, doReflect) => {
-                 return originalPath.map(p => transformPt(p.x, p.y, angle, doReflect));
-             };
-
-             // Iterate through rotations
-             for (let i = 0; i < N; i++) {
-                 const angle = i * angleInc;
-                 // Add rotated path
-                 transformedPaths.push(applyTransformToPath(path, angle, false));
-                 // Add reflected + rotated path if enabled
-                 if (reflect && N > 0) {
-                     transformedPaths.push(applyTransformToPath(path, angle, true));
-                 }
-             }
-
-              // Special case for D1 (reflection only when N=1)
-             if (N === 1 && reflect) {
-                 const reflectedPath = applyTransformToPath(path, 0, true);
-                 // Check if the reflected path is actually different from the original
-                 const isDifferent = path.some((p, index) => {
-                     const rp = reflectedPath[index];
-                     return Math.hypot(p.x - rp.x, p.y - rp.y) > 1e-6;
-                 });
-                 if(isDifferent) {
-                     transformedPaths.push(reflectedPath);
-                 }
-             }
-
-             return transformedPaths;
-        }
-        function drawPrimitive(x1, y1, x2, y2, tool, targetCtx) {
-             targetCtx.beginPath();
-             const w = x2 - x1;
-             const h = y2 - y1;
-
-             switch (tool) {
-                 case 'line':
-                     targetCtx.moveTo(x1, y1);
-                     targetCtx.lineTo(x2, y2);
-                     targetCtx.stroke();
-                     break;
-                 case 'rectangle':
-                 case 'filledRect':
-                     // Only draw if width or height is significant (avoid tiny dots)
-                     if (Math.abs(w) > 0.1 || Math.abs(h) > 0.1) {
-                         targetCtx.rect(x1, y1, w, h);
-                         if (tool === 'filledRect') targetCtx.fill();
-                         else targetCtx.stroke();
-                     }
-                     break;
-                 case 'oval':
-                 case 'filledOval':
-                     const rX = Math.abs(w / 2);
-                     const rY = Math.abs(h / 2);
-                     // Only draw if radius is significant
-                     if (rX > 0.1 || rY > 0.1) {
-                         const cX = x1 + w / 2; // Center X
-                         const cY = y1 + h / 2; // Center Y
-                         targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI);
-                         if (tool === 'filledOval') targetCtx.fill();
-                         else targetCtx.stroke();
-                     }
-                     break;
-             }
-        }
-        function drawFreehandPath(path, targetCtx) {
-             if (!path || path.length === 0) return; // Nothing to draw
-
-             targetCtx.beginPath();
-             targetCtx.moveTo(path[0].x, path[0].y);
-
-             if (path.length === 1) {
-                 // If only one point, draw a dot
-                 drawDot(path[0].x, path[0].y, targetCtx);
-             } else {
-                 // Draw lines connecting the points
-                 for (let i = 1; i < path.length; i++) {
-                     targetCtx.lineTo(path[i].x, path[i].y);
-                 }
-                 targetCtx.stroke(); // Stroke the complete path
-             }
-        }
-        function drawDot(x, y, targetCtx) {
-             // Calculate radius based on line width, ensuring a minimum size
-             const radius = Math.max(0.5, targetCtx.lineWidth / 2);
-             // Use the current strokeStyle as the fill color for the dot
-             const originalFill = targetCtx.fillStyle;
-             targetCtx.fillStyle = targetCtx.strokeStyle;
-             // Draw a small circle
-             targetCtx.beginPath();
-             targetCtx.ellipse(x, y, radius, radius, 0, 0, 2 * Math.PI);
-             targetCtx.fill();
-             // Restore original fill style if needed elsewhere
-             targetCtx.fillStyle = originalFill;
-        }
-        function drawSlices() {
-             const dpr = window.devicePixelRatio || 1;
-             const logicalWidth = gridCanvas.width / dpr;
-             const logicalHeight = gridCanvas.height / dpr;
-
-             gridCtx.clearRect(0, 0, logicalWidth, logicalHeight); // Clear previous guides
-
-             // Don't draw if checkbox is off or canvas is invalid
-             if (!showSlicesCheck.checked || !logicalWidth || !logicalHeight) return;
-
-             const N = currentRotationOrder;
-             const reflect = isReflectionEnabled;
-             const cx = centerX; // Use calculated center
-             const cy = centerY;
-
-             // No guides needed for C1 (N=1, no reflection)
-             if (N <= 0 || (N === 1 && !reflect)) return;
-
-             gridCtx.save(); // Save context state
-             gridCtx.lineWidth = 1 / dpr; // Thin lines
-
-             // Helper to find intersection with canvas bounds
-             const calculateEndPoint = (angle) => {
-                 const cosA = Math.cos(angle);
-                 const sinA = Math.sin(angle);
-                 let t = Infinity; // Parameter t along the line from center
-                 const epsilon = 1e-9; // Small value to avoid division by zero
-
-                 // Check intersections with vertical boundaries (x=0, x=width)
-                 if (Math.abs(cosA) > epsilon) {
-                     const t_x0 = -cx / cosA; // Intersection with x=0
-                     const t_xW = (logicalWidth - cx) / cosA; // Intersection with x=width
-                     if (t_x0 >= -epsilon) t = Math.min(t, t_x0); // Use positive t values
-                     if (t_xW >= -epsilon) t = Math.min(t, t_xW);
-                 }
-                 // Check intersections with horizontal boundaries (y=0, y=height)
-                 if (Math.abs(sinA) > epsilon) {
-                     const t_y0 = -cy / sinA; // Intersection with y=0
-                     const t_yH = (logicalHeight - cy) / sinA; // Intersection with y=height
-                     if (t_y0 >= -epsilon) t = Math.min(t, t_y0);
-                     if (t_yH >= -epsilon) t = Math.min(t, t_yH);
-                 }
-                 // If no intersection found (e.g., line is parallel to an edge), use a large radius
-                 t = (t === Infinity || t < epsilon) ? Math.max(logicalWidth, logicalHeight) * 1.5 : t;
-
-                 // Calculate the end point coordinates
-                 return { x: cx + t * cosA, y: cy + t * sinA };
-             };
-
-             // Get colors from CSS variables
-             const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim();
-             const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim();
-
-             if (reflect) {
-                 // Draw Dihedral (Dn) reflection lines (solid)
-                 gridCtx.strokeStyle = reflectColor;
-                 gridCtx.setLineDash([]); // Solid line
-                 gridCtx.lineWidth = 1.2 / dpr; // Slightly thicker
-                 const angleIncrement = Math.PI / N; // Angle between reflection lines
-                 const startAngle = 0; // Align first reflection with x-axis (optional)
-                 for (let i = 0; i < N; i++) {
-                     const angle = startAngle + i * angleIncrement;
-                     const endPoint = calculateEndPoint(angle);
-                     gridCtx.beginPath();
-                     gridCtx.moveTo(cx, cy);
-                     gridCtx.lineTo(endPoint.x, endPoint.y);
-                     gridCtx.stroke();
-                 }
-             } else {
-                 // Draw Cyclic (Cn) rotation sector lines (dashed)
-                 if (N > 1) { // Only draw if N > 1
-                     gridCtx.strokeStyle = sliceColor;
-                     const dash = 4 / dpr; // Dash length
-                     gridCtx.setLineDash([dash, dash]); // Dashed line
-                     gridCtx.lineWidth = 1.0 / dpr;
-                     const angleIncrement = (2 * Math.PI) / N; // Angle between sector lines
-                     for (let i = 0; i < N; i++) {
-                         const angle = i * angleIncrement;
-                         const endPoint = calculateEndPoint(angle);
-                         gridCtx.beginPath();
-                         gridCtx.moveTo(cx, cy);
-                         gridCtx.lineTo(endPoint.x, endPoint.y);
-                         gridCtx.stroke();
-                     }
-                 }
-             }
-             gridCtx.restore(); // Restore context state
-        }
-        function saveJson() {
-             // Gather current state data
-             const data = {
-                 version: "1.19-layout", // Update version identifier
-                 rotationOrder: currentRotationOrder,
-                 isReflectionEnabled: isReflectionEnabled,
-                 actions: drawingActions, // The list of drawing steps
-                 // Optionally save current tool/color/width if desired
-                 currentTool: currentTool,
-                 currentColor: currentColor,
-                 currentLineWidth: currentLineWidth
-             };
-
-             // Convert data to JSON string
-             const str = JSON.stringify(data, null, 2); // Pretty print JSON
-
-             // Create a Blob object
-             const blob = new Blob([str], { type: 'application/json' });
-
-             // Create a temporary URL for the Blob
-             const url = URL.createObjectURL(blob);
-
-             // Create a link element for download
-             const a = document.createElement('a');
-             const t = new Date().toISOString().replace(/[:.]/g, '-'); // Timestamp for filename
-             const s = isReflectionEnabled ? 'D' : 'C'; // Symmetry type for filename
-             a.download = `roset_${s}${currentRotationOrder}_${t}.json`; // Set filename
-             a.href = url; // Set link URL
-
-             // Trigger download
-             document.body.appendChild(a); // Add link to DOM
-             a.click(); // Simulate click
-
-             // Clean up
-             document.body.removeChild(a); // Remove link from DOM
-             URL.revokeObjectURL(url); // Release Blob URL
-        }
-        function loadJson(event) {
-             const file = event.target.files[0];
-             // Validate file selection and type
-             if (!file || !file.type.match('application/json')) {
-                 alert("Silakan pilih file JSON yang valid (.json).");
-                 loadFile.value = null; // Reset file input
-                 return;
-             }
-
-             const reader = new FileReader();
-
-             reader.onload = (e) => {
-                 try {
-                     const data = JSON.parse(e.target.result);
-
-                     // Basic validation of loaded data structure
-                     if (!data || typeof data.rotationOrder !== 'number' || typeof data.isReflectionEnabled !== 'boolean' || !Array.isArray(data.actions)) {
-                         throw new Error("Format file JSON Roset tidak valid.");
-                     }
-
-                     // --- Apply loaded state ---
-                     clearCanvas(true); // Clear canvas internally without saving state
-
-                     // Restore symmetry settings
-                     currentRotationOrder = data.rotationOrder;
-                     isReflectionEnabled = data.isReflectionEnabled;
-
-                     // Restore drawing actions
-                     drawingActions = data.actions || [];
-
-                     // Update UI controls to match loaded state
-                     const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`);
-                     if (rotRadio) rotRadio.checked = true;
-                     else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; // Default fallback
-                     reflectionToggle.checked = isReflectionEnabled;
-
-                     // Restore color, tool, width (if saved in JSON)
-                     currentColor = data.currentColor || getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); // Fallback to default
-                     if (colorPicker) {
-                         colorPicker.color.hexString = currentColor; // Update color picker UI
-                     }
-                     currentTool = data.currentTool || 'freehand'; // Fallback
-                     currentLineWidth = data.currentLineWidth || 3; // Fallback
-
-                     const toolRadio = document.querySelector(`input[name="tool"][value="${currentTool}"]`);
-                     if(toolRadio) toolRadio.checked = true;
-                     else document.querySelector('input[name="tool"][value="freehand"]').checked = true;
-
-                     const widthRadio = document.querySelector(`input[name="lineWidth"][value="${currentLineWidth}"]`);
-                     if(widthRadio) widthRadio.checked = true;
-                     else document.querySelector('input[name="lineWidth"][value="3"]').checked = true;
-
-                     // Ensure cursor style control is checked (use current default if not saved)
-                     const cursorRadioChecked = document.querySelector(`input[name="cursorStyle"]:checked`);
-                     if (!cursorRadioChecked) {
-                         document.querySelector(`input[name="cursorStyle"][value="${currentCursorStyle}"]`).checked = true;
-                     }
-
-                     // Update internal state variables from potentially changed controls
-                     updateSettings();
-                     updateSelectedLabels(); // Update visual styles of controls
-                     updateRotationLabels(); // Update C/D labels
-                     applyCursorStyle(); // Apply correct cursor
-                     applyContextSettings(); // Apply loaded context settings
-                     drawSlices(); // Draw guides based on loaded settings
-
-                     // Reset history and redraw based on loaded actions
-                     history = [];
-                     historyIndex = -1;
-                     redrawAllActions(true); // Redraw everything from loaded actions
-                     saveState(); // Save the loaded state as the first history item
-
-                     alert(`Berhasil memuat data gambar dari "${file.name}".`);
-
-                 } catch (err) {
-                     console.error("Load JSON error:", err);
-                     alert("Gagal memuat file: " + err.message);
-                     clearCanvas(false); // Clear canvas fully on error
-                 } finally {
-                     loadFile.value = null; // Reset file input regardless of success/failure
-                 }
-             };
-
-             reader.onerror = () => {
-                 alert("Gagal membaca file.");
-                 loadFile.value = null; // Reset file input
-             };
-
-             reader.readAsText(file); // Start reading the file
-        }
-        function downloadCanvasImage() {
-             // Create a temporary canvas to composite the final image
-             const canvasToDownload = document.createElement('canvas');
-             const ctxToDownload = canvasToDownload.getContext('2d');
-             const dpr = window.devicePixelRatio || 1;
-
-             // Get dimensions from the main drawing canvas
-             const width = canvas.width;
-             const height = canvas.height;
-             const logicalWidth = width / dpr;
-             const logicalHeight = height / dpr;
-
-             // Set dimensions of the temporary canvas
-             canvasToDownload.width = width;
-             canvasToDownload.height = height;
-             // Optional: Set style dimensions if needed for intermediate display/debugging
-             // canvasToDownload.style.width = `${logicalWidth}px`;
-             // canvasToDownload.style.height = `${logicalHeight}px`;
-
-             // 1. Fill background (using current canvas background color)
-             ctxToDownload.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#ffffff'; // Default white
-             ctxToDownload.fillRect(0, 0, width, height);
-
-             // 2. Draw the main content
-             ctxToDownload.drawImage(canvas, 0, 0);
-
-             // 3. Draw the guides on top if they are visible
-             if (showSlicesCheck.checked) {
-                 ctxToDownload.drawImage(gridCanvas, 0, 0);
-             }
-
-             // Generate filename
-             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-             const symType = isReflectionEnabled ? 'D' : 'C';
-             const filename = `pola_roset_${symType}${currentRotationOrder}_${timestamp}.png`;
-
-             // Create download link
-             const link = document.createElement('a');
-             link.download = filename;
-
-             try {
-                 // Convert temporary canvas to PNG data URL
-                 link.href = canvasToDownload.toDataURL('image/png');
-
-                 // Trigger download
-                 document.body.appendChild(link);
-                 link.click();
-                 document.body.removeChild(link);
-             } catch (e) {
-                 console.error("Download image error:", e);
-                 alert("Gagal membuat gambar unduhan: " + e.message);
-             }
-        }
-
-        // --- Panggilan Setup Awal ---
-        initializeTheme(); // Set theme first
-        updateSettings(); // Read initial settings from HTML (potentially affected by theme)
-        // Initialize color picker AFTER theme (uses CSS vars) and reading initial settings
-        initializeColorPicker();
-        updateSelectedLabels(); // Style the selected radio/checkboxes
-        updateRotationLabels(); // Set initial C/D labels
-        resizeCanvas(); // Initial canvas size calculation
-        applyCursorStyle(); // Set initial cursor
-        applyContextSettings(); // Apply initial drawing settings
-
-        // Initialize history: save the initial (likely empty) state
-        if(history.length === 0 && drawingActions.length === 0) {
-            clearCanvas(true); // Ensure canvas is clear internally
-            saveState(); // Save the initial empty state
+            if(lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr);
+            applyContextSettings(ctx, action);
+            drawAction(action, ctx); // Draw final action
+            applyContextSettings(); // Restore current settings
+
+            saveState();
         } else {
-            // If potentially reloaded with existing actions (less likely on fresh load)
-            redrawAllActions();
+            const dpr = window.devicePixelRatio || 1;
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+            if (lastKnownCanvasState) {
+                ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / dpr, canvas.height / dpr);
+            } else {
+                redrawAllActions(true);
+            }
+            updateUndoRedoButtons();
+        }
+        currentPath = [];
+        updateLastKnownCanvasState();
+    }
+
+    function redrawAllActions(skipCacheUpdate = false) {
+         const dpr = window.devicePixelRatio || 1;
+         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+         const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
+         const actionsToDraw = drawingActions.slice(0, historyIndex + 1);
+         actionsToDraw.forEach((action) => {
+             if(action && action.tool) {
+                 applyContextSettings(ctx, action);
+                 drawAction(action, ctx);
+             }
+         });
+         applyContextSettings(ctx, originalSettings);
+         if (!skipCacheUpdate) {
+             updateLastKnownCanvasState();
+         }
+         updateUndoRedoButtons();
+    }
+
+    // --- NEW / MODIFIED Drawing Functions ---
+
+    function drawAction(action, targetCtx) {
+        if (!action || !action.tool) return;
+
+        if (action.tool === 'freehand') {
+            // Freehand uses point transformation (unchanged)
+            if (action.path && action.path.length > 0) {
+                const transformedPaths = applySymmetryToPath(action.path);
+                transformedPaths.forEach(p => drawFreehandPath(p, targetCtx));
+            }
+        } else {
+            // --- Primitives use canvas transformations ---
+            const N = currentRotationOrder;
+            const reflect = isReflectionEnabled;
+            const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
+
+            // Store original settings for the action (color, width)
+            // applyContextSettings(targetCtx, action); // Settings applied before calling drawAction
+
+            // Loop through symmetry operations
+            for (let i = 0; i < N; i++) {
+                const angle = i * angleInc;
+
+                // Instance 1: Rotation only
+                targetCtx.save();
+                targetCtx.translate(centerX, centerY); // Move origin to center
+                targetCtx.rotate(angle);             // Rotate coordinate system
+                targetCtx.translate(-centerX, -centerY); // Move origin back
+                // Draw the original shape in the *now transformed* coordinate system
+                drawPrimitiveRaw(action.startX, action.startY, action.endX, action.endY, action.tool, targetCtx);
+                targetCtx.restore(); // Restore previous coordinate system
+
+                // Instance 2: Reflection + Rotation (only if reflection enabled)
+                if (reflect) {
+                    targetCtx.save();
+                    targetCtx.translate(centerX, centerY);
+                    // Reflect across the center's vertical axis *then* rotate
+                    // Or rotate then reflect across the rotated axis - let's reflect first
+                    targetCtx.scale(-1, 1); // Reflect across local y-axis
+                    targetCtx.rotate(angle); // Rotate the reflected system
+                    targetCtx.translate(-centerX, -centerY);
+                    // Draw the original shape again, it will appear reflected and rotated
+                    drawPrimitiveRaw(action.startX, action.startY, action.endX, action.endY, action.tool, targetCtx);
+                    targetCtx.restore();
+                }
+            }
+        }
+    }
+
+    // NEW: Helper to draw primitive shapes without applying symmetry internally
+    // Relies on the canvas context being pre-transformed.
+    function drawPrimitiveRaw(x1, y1, x2, y2, tool, targetCtx) {
+        targetCtx.beginPath();
+        const w = x2 - x1;
+        const h = y2 - y1;
+        // Check if it was effectively a click (minimal movement)
+        // Use a slightly larger threshold for robustness
+        const isClickLike = Math.hypot(w, h) < 1.5;
+
+        // Handle click-like drawing for filled shapes -> draw a dot
+        if ((tool === 'filledRect' || tool === 'filledOval') && isClickLike) {
+            drawDot(x1, y1, targetCtx); // Draw dot at the start point
+            return; // Don't draw the tiny shape
         }
 
-        // A small delay before the first resize can help ensure layout is stable
-        setTimeout(resizeCanvas, 100);
+        // Draw the actual shape
+        switch (tool) {
+            case 'line':
+                targetCtx.moveTo(x1, y1);
+                targetCtx.lineTo(x2, y2);
+                targetCtx.stroke();
+                break;
+            case 'rectangle':
+            case 'filledRect':
+                targetCtx.rect(x1, y1, w, h);
+                if (tool === 'filledRect') targetCtx.fill();
+                else targetCtx.stroke();
+                break;
+            case 'oval':
+            case 'filledOval':
+                // Use ellipse centered within the bounding box
+                const rX = Math.abs(w / 2);
+                const rY = Math.abs(h / 2);
+                if (rX > 0.1 || rY > 0.1) { // Avoid drawing zero-size ellipses
+                    const cX = x1 + w / 2; // Center X
+                    const cY = y1 + h / 2; // Center Y
+                    targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI);
+                    if (tool === 'filledOval') targetCtx.fill();
+                    else targetCtx.stroke();
+                }
+                break;
+        }
+    }
 
-        console.log("Simetri Roset (v1.19 - Layout Disesuaikan) Dimulai.");
+    // --- Helper functions (kept for freehand and dot drawing) ---
 
-    }); // End DOMContentLoaded
+    // Helper function to transform a single point (Used by applySymmetryToPath)
+    const transformPt = (x, y, angle, doReflect) => {
+        let cX = x - centerX;
+        let cY = y - centerY;
+        if (doReflect) cX = -cX; // Reflect across local y-axis
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const rX = cX * cosA - cY * sinA;
+        const rY = cX * sinA + cY * cosA;
+        return { x: rX + centerX, y: rY + centerY };
+    };
+
+    // Applies symmetry transformations to a path (array of points) -> Used for Freehand
+    function applySymmetryToPath(path) {
+        if (!path || path.length === 0) return [];
+        const transformedPaths = [];
+        const N = currentRotationOrder;
+        const reflect = isReflectionEnabled;
+        const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
+
+        const applyTransformToPath = (originalPath, angle, doReflect) => {
+            return originalPath.map(p => transformPt(p.x, p.y, angle, doReflect));
+        };
+
+        for (let i = 0; i < N; i++) {
+            const angle = i * angleInc;
+            transformedPaths.push(applyTransformToPath(path, angle, false));
+            if (reflect) {
+                transformedPaths.push(applyTransformToPath(path, angle, true));
+            }
+        }
+        return transformedPaths;
+    }
+
+    // Draws a freehand path (array of points)
+    function drawFreehandPath(path, targetCtx) {
+        if (!path || path.length === 0) return;
+        targetCtx.beginPath();
+        targetCtx.moveTo(path[0].x, path[0].y);
+        if (path.length === 1) {
+            drawDot(path[0].x, path[0].y, targetCtx);
+        } else {
+            for (let i = 1; i < path.length; i++) {
+                targetCtx.lineTo(path[i].x, path[i].y);
+            }
+            targetCtx.stroke();
+        }
+    }
+
+    // Draws a small filled circle (dot) - Used for clicks on filled shapes & single-point freehand
+    function drawDot(x, y, targetCtx) {
+        const radius = Math.max(0.5, targetCtx.lineWidth / 2);
+        const originalFill = targetCtx.fillStyle;
+        targetCtx.fillStyle = targetCtx.strokeStyle; // Use stroke color for dot fill
+        targetCtx.beginPath();
+        targetCtx.ellipse(x, y, radius, radius, 0, 0, 2 * Math.PI);
+        targetCtx.fill();
+        targetCtx.fillStyle = originalFill; // Restore original fill style
+    }
+
+    // --- Grid/Slices Drawing (drawSlices - Sama seperti sebelumnya) ---
+    function drawSlices() {
+         const dpr = window.devicePixelRatio || 1;
+         const logicalWidth = gridCanvas.width / dpr;
+         const logicalHeight = gridCanvas.height / dpr;
+         gridCtx.clearRect(0, 0, logicalWidth, logicalHeight);
+         if (!showSlicesCheck.checked || !logicalWidth || !logicalHeight || !centerX || !centerY) return; // Added check for centerX/Y
+
+         const N = currentRotationOrder;
+         const reflect = isReflectionEnabled;
+         const cx = centerX;
+         const cy = centerY;
+         if (N <= 0 || (N === 1 && !reflect)) return;
+
+         gridCtx.save();
+         gridCtx.lineWidth = 1 / dpr;
+         const calculateEndPoint = (angle) => {
+             const cosA = Math.cos(angle); const sinA = Math.sin(angle);
+             let t = Infinity; const epsilon = 1e-9;
+             if (Math.abs(cosA) > epsilon) {
+                 const t_x0 = -cx / cosA; const t_xW = (logicalWidth - cx) / cosA;
+                 if (t_x0 >= -epsilon) t = Math.min(t, t_x0);
+                 if (t_xW >= -epsilon) t = Math.min(t, t_xW);
+             }
+             if (Math.abs(sinA) > epsilon) {
+                 const t_y0 = -cy / sinA; const t_yH = (logicalHeight - cy) / sinA;
+                 if (t_y0 >= -epsilon) t = Math.min(t, t_y0);
+                 if (t_yH >= -epsilon) t = Math.min(t, t_yH);
+             }
+             t = (t === Infinity || t < epsilon) ? Math.max(logicalWidth, logicalHeight) * 1.5 : t;
+             return { x: cx + t * cosA, y: cy + t * sinA };
+         };
+
+         const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim();
+         const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim();
+
+         if (reflect) {
+             gridCtx.strokeStyle = reflectColor;
+             gridCtx.setLineDash([]); gridCtx.lineWidth = 1.2 / dpr;
+             const angleIncrement = Math.PI / N;
+             for (let i = 0; i < N; i++) {
+                 const angle = i * angleIncrement; const endPoint = calculateEndPoint(angle);
+                 gridCtx.beginPath(); gridCtx.moveTo(cx, cy); gridCtx.lineTo(endPoint.x, endPoint.y); gridCtx.stroke();
+             }
+         } else {
+             if (N > 1) {
+                 gridCtx.strokeStyle = sliceColor; const dash = 4 / dpr; gridCtx.setLineDash([dash, dash]); gridCtx.lineWidth = 1.0 / dpr;
+                 const angleIncrement = (2 * Math.PI) / N;
+                 for (let i = 0; i < N; i++) {
+                     const angle = i * angleIncrement; const endPoint = calculateEndPoint(angle);
+                     gridCtx.beginPath(); gridCtx.moveTo(cx, cy); gridCtx.lineTo(endPoint.x, endPoint.y); gridCtx.stroke();
+                 }
+             }
+         }
+         gridCtx.restore();
+    }
+
+    // --- Save/Load/Download (saveJson, loadJson, downloadCanvasImage - Sama seperti sebelumnya) ---
+    function saveJson() {
+         const data = {
+             version: "1.19-layout-shapefix", // Updated version
+             rotationOrder: currentRotationOrder, isReflectionEnabled: isReflectionEnabled,
+             actions: drawingActions, currentTool: currentTool, currentColor: currentColor, currentLineWidth: currentLineWidth
+         };
+         const str = JSON.stringify(data, null, 2);
+         const blob = new Blob([str], { type: 'application/json' });
+         const url = URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         const t = new Date().toISOString().replace(/[:.]/g, '-');
+         const s = isReflectionEnabled ? 'D' : 'C';
+         a.download = `roset_${s}${currentRotationOrder}_${t}.json`;
+         a.href = url;
+         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+    function loadJson(event) {
+         const file = event.target.files[0];
+         if (!file || !file.type.match('application/json')) { alert("Silakan pilih file JSON yang valid (.json)."); loadFile.value = null; return; }
+         const reader = new FileReader();
+         reader.onload = (e) => {
+             try {
+                 const data = JSON.parse(e.target.result);
+                 if (!data || typeof data.rotationOrder !== 'number' || typeof data.isReflectionEnabled !== 'boolean' || !Array.isArray(data.actions)) { throw new Error("Format file JSON Roset tidak valid."); }
+                 clearCanvas(true);
+                 currentRotationOrder = data.rotationOrder; isReflectionEnabled = data.isReflectionEnabled;
+                 drawingActions = data.actions || [];
+                 const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`); if (rotRadio) rotRadio.checked = true; else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true;
+                 reflectionToggle.checked = isReflectionEnabled;
+                 currentColor = data.currentColor || getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(); if (colorPicker) { colorPicker.color.hexString = currentColor; }
+                 currentTool = data.currentTool || 'freehand';
+                 currentLineWidth = data.currentLineWidth || 3;
+                 const toolRadio = document.querySelector(`input[name="tool"][value="${currentTool}"]`); if(toolRadio) toolRadio.checked = true; else document.querySelector('input[name="tool"][value="freehand"]').checked = true;
+                 const widthRadio = document.querySelector(`input[name="lineWidth"][value="${currentLineWidth}"]`); if(widthRadio) widthRadio.checked = true; else document.querySelector('input[name="lineWidth"][value="3"]').checked = true;
+                 const cursorRadioChecked = document.querySelector(`input[name="cursorStyle"]:checked`); if (!cursorRadioChecked) { document.querySelector(`input[name="cursorStyle"][value="${currentCursorStyle}"]`).checked = true; }
+                 updateSettings(); updateSelectedLabels(); updateRotationLabels(); applyCursorStyle(); applyContextSettings(); drawSlices();
+                 history = []; historyIndex = -1; redrawAllActions(true); saveState();
+                 alert(`Berhasil memuat data gambar dari "${file.name}".`);
+             } catch (err) {
+                 console.error("Load JSON error:", err); alert("Gagal memuat file: " + err.message); clearCanvas(false);
+             } finally {
+                 loadFile.value = null;
+             }
+         };
+         reader.onerror = () => { alert("Gagal membaca file."); loadFile.value = null; };
+         reader.readAsText(file);
+    }
+    function downloadCanvasImage() {
+         const canvasToDownload = document.createElement('canvas');
+         const ctxToDownload = canvasToDownload.getContext('2d');
+         const dpr = window.devicePixelRatio || 1;
+         const width = canvas.width; const height = canvas.height;
+         canvasToDownload.width = width; canvasToDownload.height = height;
+         ctxToDownload.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#ffffff';
+         ctxToDownload.fillRect(0, 0, width, height);
+         ctxToDownload.drawImage(canvas, 0, 0);
+         if (showSlicesCheck.checked) { ctxToDownload.drawImage(gridCanvas, 0, 0); }
+         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+         const symType = isReflectionEnabled ? 'D' : 'C';
+         const filename = `pola_roset_${symType}${currentRotationOrder}_${timestamp}.png`;
+         const link = document.createElement('a'); link.download = filename;
+         try {
+             link.href = canvasToDownload.toDataURL('image/png');
+             document.body.appendChild(link); link.click(); document.body.removeChild(link);
+         } catch (e) {
+             console.error("Download image error:", e); alert("Gagal membuat gambar unduhan: " + e.message);
+         }
+    }
+
+    // --- Panggilan Setup Awal (Sama seperti sebelumnya) ---
+    initializeTheme();
+    updateSettings();
+    initializeColorPicker(); // Init picker *after* theme and initial settings
+    updateSelectedLabels();
+    updateRotationLabels();
+    resizeCanvas(); // Initial resize calculates centerX/Y needed for drawing
+    applyCursorStyle();
+    applyContextSettings();
+
+    if(history.length === 0 && drawingActions.length === 0) {
+        clearCanvas(true);
+        saveState(); // Save initial empty state
+    } else {
+        redrawAllActions();
+    }
+
+    setTimeout(resizeCanvas, 100); // Ensure layout stable before final resize
+
+    console.log("Simetri Roset (v1.19 - Perbaikan Rotasi Bentuk) Dimulai.");
+
+}); // End DOMContentLoaded
 </script>
 
 </body>
