@@ -3,51 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rosette Symmetry (Modern UI Refresh)</title>
+    <title>Rosette Symmetry (v1.10 - Edge Fix)</title> <!-- Version bump -->
 
     <style>
+        /* CSS styles remain the same as v1.9 */
         :root {
             /* Color Palette */
-            --primary-color: #4a69bd; /* Slightly muted blue */
-            --primary-hover: #3b5bb5;
-            --secondary-color: #6c757d;
-            --secondary-hover: #5a6268;
-            --success-color: #2ecc71; /* Brighter green */
-            --success-hover: #28b463;
-            --danger-color: #e74c3c; /* Brighter red */
-            --danger-hover: #c0392b;
-            --info-color: #3498db; /* Brighter cyan-blue */
-            --info-hover: #2980b9;
-            --warning-color: #f39c12; /* Orange/Yellow */
-            --warning-hover: #d35400;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
+            --primary-color: #4a69bd; --primary-hover: #3b5bb5;
+            --secondary-color: #6c757d; --secondary-hover: #5a6268;
+            --success-color: #2ecc71; --success-hover: #28b463;
+            --danger-color: #e74c3c; --danger-hover: #c0392b;
+            --info-color: #3498db; --info-hover: #2980b9;
+            --warning-color: #f39c12; --warning-hover: #d35400;
+            --light-color: #f8f9fa; --dark-color: #343a40;
 
-            --text-color: #333;
-            --text-muted: #6c757d;
-            --bg-color: #f4f7f9; /* Very light grey background */
-            --card-bg: #ffffff;
-            --card-border: #e1e8ed; /* Softer border */
-            --canvas-border: #cddae3; /* Slightly darker canvas border */
+            --text-color: #333; --text-muted: #6c757d;
+            --bg-color: #f4f7f9; --card-bg: #ffffff;
+            --card-border: #e1e8ed; --canvas-border: #cddae3;
             --input-border: #ced4da;
             --input-focus-border: var(--primary-color);
             --input-focus-shadow: rgba(74, 105, 189, 0.2);
 
             --hover-bg: #e9ecef;
-            --selected-bg: rgba(74, 105, 189, 0.1); /* Subtle selected background */
+            --selected-bg: rgba(74, 105, 189, 0.1);
             --selected-border: rgba(74, 105, 189, 0.3);
             --disabled-opacity: 0.5;
             --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.07);
 
             /* Guide Line Colors */
-            --grid-slice-color: #aab7c4; /* Softer slice color */
-            --grid-reflect-line-color: #f08080; /* Light coral reflection */
+            --grid-slice-color: #aab7c4;
+            --grid-reflect-line-color: #e74c3c;
 
             /* Layout */
             --canvas-size: 600px;
-            --controls-width: 220px; /* Width for side control panels */
-            --border-radius: 6px; /* Slightly more rounded */
+            --controls-width: 220px;
+            --border-radius: 6px;
             --spacing: 1rem;
         }
 
@@ -58,135 +49,73 @@
             display: flex; flex-direction: column; align-items: center;
             background-color: var(--bg-color); color: var(--text-color);
             margin: 0; padding: calc(var(--spacing) * 1.5); min-height: 100vh;
-            font-size: 15px; /* Base font size */
-            line-height: 1.6;
+            font-size: 15px; line-height: 1.6;
         }
 
-        /* Main Layout Container */
-        .app-container {
-            width: 100%;
-            max-width: calc(var(--canvas-size) + (2 * var(--controls-width)) + (4 * var(--spacing))); /* Calculate max width */
-            display: flex;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-            justify-content: center;
-            gap: var(--spacing);
-        }
-
+        .app-container { width: 100%; max-width: calc(var(--canvas-size) + (2 * var(--controls-width)) + (4 * var(--spacing))); display: flex; flex-wrap: wrap; justify-content: center; gap: var(--spacing); }
         header { width: 100%; text-align: center; margin-bottom: var(--spacing); }
         h1 { margin-top: 0; margin-bottom: 0.25rem; font-weight: 600; color: var(--dark-color); font-size: 1.8rem; }
         h2 { margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 400; color: var(--text-muted); }
         .info-link button { background: none; border: none; color: var(--primary-color); text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: 0.95em; font-family: inherit; border-bottom: 1px dashed var(--primary-color); }
         .info-link button:hover { color: var(--primary-hover); border-bottom-style: solid; }
 
-        /* Control Panels (Left & Right) */
-        .controls-panel {
-            background-color: var(--card-bg); padding: var(--spacing);
-            border: 1px solid var(--card-border); border-radius: var(--border-radius);
-            box-shadow: var(--shadow-sm);
-            width: var(--controls-width);
-            flex-shrink: 0; /* Prevent shrinking */
-             height: fit-content; /* Fit content height */
-        }
-
-        /* Canvas Area (Center) */
-        .canvas-section {
-            display: flex; flex-direction: column; align-items: center;
-            width: 100%; /* Take remaining space initially */
-            max-width: var(--canvas-size);
-            flex-grow: 1; /* Allow growing if needed (unlikely with max-width) */
-        }
+        .controls-panel { background-color: var(--card-bg); padding: var(--spacing); border: 1px solid var(--card-border); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); width: var(--controls-width); flex-shrink: 0; height: fit-content; }
+        .canvas-section { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: var(--canvas-size); flex-grow: 1; }
         .canvas-instructions { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-align: center; }
-        .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: white; width: 100%; /* Full width of parent */ height: auto; aspect-ratio: 1 / 1; /* Maintain square */ max-width: var(--canvas-size); max-height: var(--canvas-size); box-shadow: var(--shadow-md); overflow: hidden; border-radius: var(--border-radius); margin-bottom: var(--spacing); }
+        .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: white; width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: var(--canvas-size); max-height: var(--canvas-size); box-shadow: var(--shadow-md); overflow: hidden; border-radius: var(--border-radius); margin-bottom: var(--spacing); }
         #drawingCanvas, #gridCanvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent; }
         #drawingCanvas { position: relative; z-index: 0; background-color: white; }
-        .cursor-pencil { cursor: url('pencil.png') 0 16, crosshair; }
-        .cursor-crosshair { cursor: crosshair; }
-        .cursor-default { cursor: default; }
+        .cursor-pencil { cursor: url('pencil.png') 0 16, crosshair; } .cursor-crosshair { cursor: crosshair; } .cursor-default { cursor: default; }
         #gridCanvas { pointer-events: none; z-index: 1; }
 
-        /* Footer Controls (below canvas) */
-        .controls-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--spacing) * 0.6); width: 100%; max-width: var(--canvas-size); margin: 0 auto; /* Center footer items */}
-
-        /* General Button Style */
-        .btn { display: inline-block; font-weight: 500; /* Slightly bolder */ line-height: 1.5; color: var(--text-color); text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid transparent; padding: 0.4rem 0.9rem; /* Adjusted padding */ font-size: 0.9rem; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; }
+        .controls-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--spacing) * 0.6); width: 100%; max-width: var(--canvas-size); margin: 0 auto; }
+        .btn { display: inline-block; font-weight: 500; line-height: 1.5; color: var(--text-color); text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid transparent; padding: 0.4rem 0.9rem; font-size: 0.9rem; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; }
         .btn:disabled { pointer-events: none; opacity: var(--disabled-opacity); }
-        /* Specific Button Variants */
-        .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); }
-        .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; }
-        .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); }
-        .btn-outline-danger:hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; }
-        .btn-outline-success { color: var(--success-color); border-color: var(--success-color); }
-        .btn-outline-success:hover { background-color: var(--success-color); border-color: var(--success-color); color: white; }
-        .btn-outline-info { color: var(--info-color); border-color: var(--info-color); }
-        .btn-outline-info:hover { background-color: var(--info-color); border-color: var(--info-color); color: white; }
+        .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); } .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; }
+        .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); } .btn-outline-danger:hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; }
+        .btn-outline-success { color: var(--success-color); border-color: var(--success-color); } .btn-outline-success:hover { background-color: var(--success-color); border-color: var(--success-color); color: white; }
+        .btn-outline-info { color: var(--info-color); border-color: var(--info-color); } .btn-outline-info:hover { background-color: var(--info-color); border-color: var(--info-color); color: white; }
 
         .controls-footer label { cursor: pointer; display: inline-flex; align-items: center; gap: 0.4em; font-size: 0.9rem; padding: 0.4rem 0.6rem; border-radius: var(--border-radius); transition: background-color 0.15s ease; vertical-align: middle; color: var(--secondary-color); }
         .controls-footer label:hover { background-color: var(--hover-bg); color: var(--dark-color); }
-        .controls-footer input[type="checkbox"] { /* Keep this simple */
-            cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.2em;
-            accent-color: var(--primary-color); /* Main color hint */
-        }
+        .controls-footer input[type="checkbox"] { cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.2em; accent-color: var(--primary-color); }
 
-        /* Control Groups inside Panels */
-        .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.25) 0; display: flex; flex-direction: column; }
-        .control-group:last-child { margin-bottom: 0; }
+        .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.25) 0; display: flex; flex-direction: column; } .control-group:last-child { margin-bottom: 0; }
         .control-group legend { font-weight: 600; margin-bottom: calc(var(--spacing)*0.8); font-size: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--card-border); width: 100%; color: var(--dark-color); }
-
-        /* Labels within Control Groups */
         .control-group label { display: flex; align-items: center; gap: 0.6em; margin-bottom: 4px; cursor: pointer; font-size: 0.9rem; padding: 0.45rem 0.75rem; border-radius: var(--border-radius); transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out; border: 1px solid transparent; position: relative; }
         .control-group label:hover:not(.selected) { background-color: var(--hover-bg); }
-        .control-group input[type="radio"], .control-group input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; } /* Hide original inputs */
+        .control-group input[type="radio"], .control-group input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 
-        /* Custom Checkbox (Reflection) */
-        .control-group label.checkbox-label span.custom-checkbox { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--input-border); border-radius: 0.25em; background-color: white; flex-shrink: 0; margin-right: 0; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; position: relative; top: 0.1em; /* Vertical align */ }
+        .control-group label.checkbox-label span.custom-checkbox { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--input-border); border-radius: 0.25em; background-color: white; flex-shrink: 0; margin-right: 0; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; position: relative; top: 0.1em; }
         .control-group input[type="checkbox"]:checked + span.custom-checkbox { background-color: var(--primary-color); border-color: var(--primary-color); }
-        /* Checkmark using SVG */
-        .control-group input[type="checkbox"]:checked + span.custom-checkbox::after { content: ''; display: block; width: 0.6em; height: 0.3em; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(-1px, 1px); /* Position checkmark */ position: absolute; left: 0.2em; top: 0.25em; }
+        .control-group input[type="checkbox"]:checked + span.custom-checkbox::after { content: ''; display: block; width: 0.6em; height: 0.3em; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(-1px, 1px); position: absolute; left: 0.2em; top: 0.25em; }
 
-        /* Custom Radio Button Appearance */
         .control-group label span.custom-radio { display: inline-block; width: 1.1em; height: 1.1em; border: 1px solid var(--input-border); border-radius: 50%; background-color: white; flex-shrink: 0; position: relative; top: 0.1em; transition: border-color 0.15s ease-in-out; }
         .control-group input[type="radio"]:checked + span.custom-radio { border-color: var(--primary-color); border-width: 2px; }
-        /* Inner dot for selected radio */
         .control-group input[type="radio"]:checked + span.custom-radio::after { content: ''; display: block; width: 0.5em; height: 0.5em; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .control-group label.selected { /* Style the whole label slightly */ background-color: var(--selected-bg); border-color: var(--selected-border); }
-        .control-group label.selected span:not(.custom-radio):not(.color-swatch) { color: var(--primary-color); font-weight: 500; } /* Style text */
+        .control-group label.selected { background-color: var(--selected-bg); border-color: var(--selected-border); }
+        .control-group label.selected span:not(.custom-radio):not(.color-swatch) { color: var(--primary-color); font-weight: 500; }
 
         .color-swatch { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid rgba(0,0,0,0.1); margin-right: 0.6em; vertical-align: middle; flex-shrink: 0; border-radius: 4px; box-shadow: var(--shadow-sm); }
         .color-swatch[style*="white"], .color-swatch[style*="#ffffff"], .color-swatch[style*="#f"] { border-color: #ccc; }
-
         .rotations-list { max-height: 350px; overflow-y: auto; padding-right: 8px; margin-right: -8px; }
 
-        /* Info Modal */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); /* Darker backdrop */ padding: var(--spacing); backdrop-filter: blur(3px); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); padding: var(--spacing); backdrop-filter: blur(3px); }
         .modal-content { background-color: var(--card-bg); margin: 4% auto; padding: calc(var(--spacing) * 1.5); border: none; border-radius: var(--border-radius); width: 90%; max-width: 650px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); position: relative; animation: modalFadeIn 0.3s ease-out; }
         .modal-close { color: var(--secondary-color); position: absolute; top: calc(var(--spacing) * 0.8); right: calc(var(--spacing) * 1.2); font-size: 2rem; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.15s ease; }
         .modal-close:hover, .modal-close:focus { color: var(--danger-color); text-decoration: none; }
         .modal h2 { margin-top: 0; color: var(--primary-color); font-weight: 600; margin-bottom: var(--spacing); }
         .modal p, .modal ul { font-size: 0.95em; line-height: 1.7; color: var(--text-color); }
         .modal ul { padding-left: 20px; margin-top: 0.5em; } .modal li { margin-bottom: 0.7em; }
-
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Responsive Adjustments */
-        @media (max-width: 1100px) { /* Adjust breakpoint based on controls+canvas width */
-            .app-container { flex-direction: column; align-items: center; max-width: 100%; }
-            .controls-panel { width: 100%; max-width: 500px; /* Limit control panel width when stacked */ }
-            .canvas-section { order: -1; /* Move canvas above controls */ }
-        }
-        @media (max-width: 480px) {
-             body { padding: var(--spacing); }
-             h1 { font-size: 1.6rem; }
-             .btn { font-size: 0.85rem; padding: 0.35rem 0.8rem; }
-             .controls-footer { gap: calc(var(--spacing) * 0.5); }
-             .control-group legend { font-size: 0.95rem; }
-             .control-group label { font-size: 0.85rem; padding: 0.4rem 0.6rem;}
-             .modal-content { padding: var(--spacing); }
-             .modal h2 { font-size: 1.3rem; }
-         }
+        @media (max-width: 1100px) { .app-container { flex-direction: column; align-items: center; max-width: 100%; } .controls-panel { width: 100%; max-width: 500px; } .canvas-section { order: -1; } }
+        @media (max-width: 480px) { body { padding: var(--spacing); } h1 { font-size: 1.6rem; } .btn { font-size: 0.85rem; padding: 0.35rem 0.8rem; } .controls-footer { gap: calc(var(--spacing) * 0.5); } .control-group legend { font-size: 0.95rem; } .control-group label { font-size: 0.85rem; padding: 0.4rem 0.6rem;} .modal-content { padding: var(--spacing); } .modal h2 { font-size: 1.3rem; } }
     </style>
 </head>
 <body>
 
+    <!-- HTML Structure remains the same as v1.9 -->
     <div class="app-container">
         <header>
             <h1>Rosette Symmetry</h1>
@@ -202,16 +131,14 @@
                  <legend>Symmetry Type</legend>
                  <label class="checkbox-label">
                      <input type="checkbox" id="reflectionToggle">
-                     <span class="custom-checkbox"></span> <!-- Span for styling -->
-                     <span>Enable Reflection (D<sub>n</sub>)</span> <!-- Span for text -->
+                     <span class="custom-checkbox"></span>
+                     <span>Enable Reflection (D<sub>n</sub>)</span>
                  </label>
             </fieldset>
-
             <!-- Rotation Order -->
             <fieldset class="control-group">
                 <legend>Rotations (n)</legend>
                 <div class="rotations-list">
-                    <!-- Add custom radio span -->
                     <label><input type="radio" name="rotationOrder" value="1" checked> <span class="custom-radio"></span><span>1 (C<sub>1</sub>)</span></label>
                     <label><input type="radio" name="rotationOrder" value="2"> <span class="custom-radio"></span><span>2 (C<sub>2</sub>)</span></label>
                     <label><input type="radio" name="rotationOrder" value="3"> <span class="custom-radio"></span><span>3 (C<sub>3</sub>)</span></label>
@@ -246,8 +173,8 @@
                  <button id="undoBtn" title="Undo (Ctrl+Z)" class="btn btn-outline-secondary" disabled>Undo</button>
                  <button id="redoBtn" title="Redo (Ctrl+Y)" class="btn btn-outline-secondary" disabled>Redo</button>
                  <button id="clearBtn" title="Clear Canvas" class="btn btn-outline-danger">Clear</button>
-                 <label title="Show guide lines">
-                     <input type="checkbox" id="showSlicesCheck"> Show Guides
+                 <label title="Show rotation/reflection guide lines">
+                     <input type="checkbox" id="showSlicesCheck"> Show Slices
                  </label>
                  <button id="saveBtn" title="Save drawing data as JSON" class="btn btn-outline-success">Save Data</button>
                  <button id="loadBtn" title="Load drawing data from JSON" class="btn btn-outline-secondary">Load Data</button>
@@ -267,7 +194,6 @@
                 <label><input type="radio" name="tool" value="filledOval"> <span class="custom-radio"></span><span>Filled Oval</span></label>
                 <label><input type="radio" name="tool" value="freehand" checked> <span class="custom-radio"></span><span>Freehand</span></label>
             </fieldset>
-
             <!-- Line Width -->
             <fieldset class="control-group">
                 <legend>Line Width</legend>
@@ -279,7 +205,6 @@
                 <label><input type="radio" name="lineWidth" value="10"> <span class="custom-radio"></span><span>10 px</span></label>
                 <label><input type="radio" name="lineWidth" value="20"> <span class="custom-radio"></span><span>20 px</span></label>
             </fieldset>
-
              <!-- Kursor -->
              <fieldset class="control-group">
                 <legend>Cursor Style</legend>
@@ -287,8 +212,6 @@
                 <label><input type="radio" name="cursorStyle" value="pencil"> <span class="custom-radio"></span><span>Pencil</span></label>
                 <label><input type="radio" name="cursorStyle" value="default"> <span class="custom-radio"></span><span>Default</span></label>
             </fieldset>
-
-
             <!-- Color -->
             <fieldset class="control-group">
                 <legend>Color</legend>
@@ -312,15 +235,12 @@
                 <label><input type="radio" name="color" value="indigo"> <span class="color-swatch" style="background-color: indigo;"></span><span>Indigo</span></label>
                 <label><input type="radio" name="color" value="brown"> <span class="color-swatch" style="background-color: brown;"></span><span>Coklat</span></label>
              </fieldset>
-
-             </fieldset>
         </aside>
-
     </div>
 
-    <!-- Info Modal Structure (Unchanged) -->
+    <!-- Info Modal Structure -->
     <div id="infoModal" class="modal">
-        <div class="modal-content">
+         <div class="modal-content">
             <span class="modal-close" id="modalCloseBtn">×</span>
             <h2>Rosette Symmetry Info & Instructions</h2>
             <p>This application demonstrates rosette symmetry, where patterns are repeated around a central point.</p>
@@ -329,7 +249,7 @@
                 <li><strong>Enable Reflection:</strong> Check this box to add reflections across lines passing through the center. This creates D<sub>n</sub> dihedral symmetry (like a kaleidoscope).</li>
                 <li><strong>Tool, Line Width, Color, Cursor:</strong> Choose your drawing preferences.</li>
                 <li><strong>Drawing:</strong> Click and drag (or use touch) in the white canvas area to draw your fundamental motif. The symmetry is applied instantly.</li>
-                <li><strong>Show Guides:</strong> Check this box to display guide lines radiating from the center, showing the angular segments for rotation. If reflection is enabled, a primary reflection axis (vertical) will also be shown.</li>
+                <li><strong>Show Slices:</strong> Check this box to display guide lines. For C<sub>n</sub> symmetry (reflection off), dashed lines show the N sectors. For D<sub>n</sub> symmetry (reflection on), solid lines show the N reflection axes.</li>
                 <li><strong>Controls:</strong> Use Undo, Redo, Clear, Save Data (JSON), Load Data (JSON), and Download Image (PNG).</li>
             </ul>
             <p><strong>Tip:</strong> Start with a low rotation number (e.g., 3 or 4) and draw a simple shape off-center to clearly see the effect. Then experiment with higher numbers and enabling reflection.</p>
@@ -337,8 +257,8 @@
     </div>
 
     <script>
-        // JavaScript remains identical to the previous Rosette version (v1.7)
-        // All logic should work with the new HTML structure and CSS.
+        // JavaScript remains identical to the previous Rosette version
+        // EXCEPT for the updated drawSlices() function below.
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
             const canvas = document.getElementById('drawingCanvas');
@@ -378,38 +298,19 @@
             let centerX, centerY;
 
             // --- Setup ---
-            function resizeCanvas() {
-                const containerWidth = canvasContainer.clientWidth; // Use container width for buffer size
-                const size = containerWidth; // Keep it square
-                canvas.width = size; canvas.height = size;
-                gridCanvas.width = size; gridCanvas.height = size;
-                centerX = canvas.width / 2; centerY = canvas.height / 2;
-                applyContextSettings(); applyCursorStyle(); drawSlices(); redrawAllActions();
-            }
+            function resizeCanvas() { const size = canvasContainer.clientWidth; canvas.width = size; canvas.height = size; gridCanvas.width = size; gridCanvas.height = size; centerX = canvas.width / 2; centerY = canvas.height / 2; applyContextSettings(); applyCursorStyle(); drawSlices(); redrawAllActions(); }
             function applyContextSettings(targetCtx = ctx, settings = null) { const lw = settings ? settings.lineWidth : currentLineWidth; const col = settings ? settings.color : currentColor; targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round'; targetCtx.lineWidth = lw; targetCtx.strokeStyle = col; targetCtx.fillStyle = col; }
             function applyCursorStyle() { canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default'); if (currentCursorStyle === 'pencil') canvas.classList.add('cursor-pencil'); else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair'); else canvas.classList.add('cursor-default'); }
 
             // --- Info Modal Logic ---
-            function showInfoModal() { infoModal.style.display = 'block'; }
-            function hideInfoModal() { infoModal.style.display = 'none'; }
-            infoBtn.addEventListener('click', showInfoModal); modalCloseBtn.addEventListener('click', hideInfoModal); window.addEventListener('click', (event) => { if (event.target == infoModal) hideInfoModal(); }); window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'block') hideInfoModal(); });
+            function showInfoModal() { infoModal.style.display = 'block'; } function hideInfoModal() { infoModal.style.display = 'none'; } infoBtn.addEventListener('click', showInfoModal); modalCloseBtn.addEventListener('click', hideInfoModal); window.addEventListener('click', (event) => { if (event.target == infoModal) hideInfoModal(); }); window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && infoModal.style.display === 'block') hideInfoModal(); });
 
             // --- Event Listeners ---
             controlGroups.forEach(group => { group.addEventListener('change', (e) => { const target = e.target; if (target.type === 'radio' || target.type === 'checkbox') { const prevRot = currentRotationOrder; const prevRef = isReflectionEnabled; const prevCur = currentCursorStyle; updateSettings(); updateSelectedLabels(); if(currentCursorStyle !== prevCur) applyCursorStyle(); if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) { drawSlices(); redrawAllActions(); saveState(); } else if (target.name !== 'rotationOrder' && target.id !== 'reflectionToggle'){ applyContextSettings(); } } }); });
-            showSlicesCheck.addEventListener('change', drawSlices); clearBtn.addEventListener('click', () => clearCanvas(false)); undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo); saveBtn.addEventListener('click', saveJson); loadBtn.addEventListener('click', () => loadFile.click()); loadFile.addEventListener('change', loadJson); downloadImageBtn.addEventListener('click', downloadCanvasImage); document.addEventListener('keydown', (e) => { if (e.ctrlKey || e.metaKey) { if (e.key === 'z') { e.preventDefault(); undo(); } else if (e.key === 'y') { e.preventDefault(); redo(); } } });
+            showSlicesCheck.addEventListener('change', drawSlices); // Trigger redraw of guides
+            clearBtn.addEventListener('click', () => clearCanvas(false)); undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo); saveBtn.addEventListener('click', saveJson); loadBtn.addEventListener('click', () => loadFile.click()); loadFile.addEventListener('change', loadJson); downloadImageBtn.addEventListener('click', downloadCanvasImage); document.addEventListener('keydown', (e) => { if (e.ctrlKey || e.metaKey) { if (e.key === 'z') { e.preventDefault(); undo(); } else if (e.key === 'y') { e.preventDefault(); redo(); } } });
             canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
-
-            // Debounced Resize Handler
-            let resizeTimeout;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    console.log("Resizing...");
-                    resizeCanvas();
-                    saveState(); // Save state after resize potentially changes visuals due to scaling
-                }, 150);
-            });
-
+            let resizeTimeout; window.addEventListener('resize', () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(() => { resizeCanvas(); saveState(); }, 150); });
 
             // --- Core Functions ---
             function updateSettings() { currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand'; currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10); currentColor = document.querySelector('input[name="color"]:checked')?.value ?? 'black'; currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10); isReflectionEnabled = reflectionToggle.checked; currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair'; }
@@ -442,19 +343,106 @@
             function drawFreehandPath(path, targetCtx) { if (!path || path.length === 0) return; targetCtx.beginPath(); targetCtx.moveTo(path[0].x, path[0].y); if (path.length === 1) drawDot(path[0].x, path[0].y, targetCtx); else { for (let i = 1; i < path.length; i++) targetCtx.lineTo(path[i].x, path[i].y); targetCtx.stroke(); } }
             function drawDot(x, y, targetCtx) { const r = Math.max(1, targetCtx.lineWidth / 2); targetCtx.fillStyle = targetCtx.strokeStyle; targetCtx.beginPath(); targetCtx.ellipse(x, y, r, r, 0, 0, 2 * Math.PI); targetCtx.fill(); }
 
-            // --- Draw Guides (Slices) ---
-            function drawSlices() { gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height); if (!showSlicesCheck.checked) return; const N = currentRotationOrder; if (N <= 1 && !isReflectionEnabled) return; const radius = Math.max(centerX, centerY) * 1.5; gridCtx.save(); gridCtx.lineWidth = 1; gridCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim() || '#aab7c4'; gridCtx.setLineDash([4, 4]); if (N > 1) { const angleInc = (2 * Math.PI) / N; for (let i = 0; i < N; i++) { const angle = i * angleInc; const endX = centerX + radius * Math.cos(angle); const endY = centerY + radius * Math.sin(angle); gridCtx.beginPath(); gridCtx.moveTo(centerX, centerY); gridCtx.lineTo(endX, endY); gridCtx.stroke(); } } if (isReflectionEnabled && N > 0) { gridCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim() || '#f08080'; gridCtx.setLineDash([]); gridCtx.beginPath(); gridCtx.moveTo(centerX, 0); gridCtx.lineTo(centerX, canvas.height); gridCtx.stroke(); } gridCtx.restore(); }
+            // --- Draw Guides (Slices / Axes) --- // UPDATED v1.10
+            function drawSlices() {
+                gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+                if (!showSlicesCheck.checked) return;
+
+                const N = currentRotationOrder;
+                const reflect = isReflectionEnabled;
+                const width = gridCanvas.width;
+                const height = gridCanvas.height;
+
+                if (N <= 0 || (N === 1 && !reflect)) return;
+
+                gridCtx.save();
+                gridCtx.lineWidth = 1;
+
+                const calculateEndPoint = (angle) => {
+                    const cosA = Math.cos(angle);
+                    const sinA = Math.sin(angle);
+                    let t = Infinity;
+                    const epsilon = 1e-9; // Small number to handle near-zero cases
+
+                    // Check intersection with vertical edges
+                    if (Math.abs(cosA) > epsilon) {
+                        const t_x1 = -centerX / cosA; // t for x=0
+                        const t_x2 = (width - centerX) / cosA; // t for x=width
+                        if (t_x1 >= -epsilon) t = Math.min(t, t_x1); // Use small epsilon for comparison
+                        if (t_x2 >= -epsilon) t = Math.min(t, t_x2);
+                    }
+
+                    // Check intersection with horizontal edges
+                    if (Math.abs(sinA) > epsilon) {
+                        const t_y1 = -centerY / sinA; // t for y=0
+                        const t_y2 = (height - centerY) / sinA; // t for y=height
+                        if (t_y1 >= -epsilon) t = Math.min(t, t_y1);
+                        if (t_y2 >= -epsilon) t = Math.min(t, t_y2);
+                    }
+
+                     // Fallback for pure horizontal/vertical if t is still Infinity
+                     if (t === Infinity) {
+                         if (Math.abs(cosA) < epsilon) t = height / 2 / Math.abs(sinA || epsilon); // Vertical
+                         else if (Math.abs(sinA) < epsilon) t = width / 2 / Math.abs(cosA || epsilon); // Horizontal
+                         else t = Math.max(width, height); // Should not happen
+                     }
+
+
+                    return {
+                        x: centerX + t * cosA,
+                        y: centerY + t * sinA
+                    };
+                };
+
+                if (reflect) {
+                    // --- Draw Dn Reflection Axes ---
+                    const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim() || '#e74c3c';
+                    gridCtx.strokeStyle = reflectColor;
+                    gridCtx.setLineDash([]); // Solid
+                    gridCtx.lineWidth = 1.2;
+
+                    const angleBetweenAxes = Math.PI / N;
+                    const startAngle = -Math.PI / 2; // Start vertical
+
+                    for (let i = 0; i < N; i++) {
+                        const angle = startAngle + i * angleBetweenAxes;
+                        const endPoint = calculateEndPoint(angle);
+                        gridCtx.beginPath();
+                        gridCtx.moveTo(centerX, centerY);
+                        gridCtx.lineTo(endPoint.x, endPoint.y);
+                        gridCtx.stroke();
+                    }
+                } else {
+                    // --- Draw Cn Sector Boundaries ---
+                    if (N > 1) {
+                        const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim() || '#aab7c4';
+                        gridCtx.strokeStyle = sliceColor;
+                        gridCtx.setLineDash([4, 4]); // Dashed
+
+                        const angleIncrement = (2 * Math.PI) / N;
+                        for (let i = 0; i < N; i++) {
+                            const angle = i * angleIncrement; // Start horizontal
+                            const endPoint = calculateEndPoint(angle);
+                            gridCtx.beginPath();
+                            gridCtx.moveTo(centerX, centerY);
+                            gridCtx.lineTo(endPoint.x, endPoint.y);
+                            gridCtx.stroke();
+                        }
+                    }
+                }
+                gridCtx.restore();
+            } // End drawSlices
 
             // --- Save / Load JSON ---
-            function saveJson() { const data = { version: 1.2, rotationOrder: currentRotationOrder, isReflectionEnabled: isReflectionEnabled, actions: drawingActions }; const str = JSON.stringify(data, null, 2); const blob = new Blob([str], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); const t = new Date().toISOString().replace(/[:.]/g, '-'); const s = isReflectionEnabled ? 'D' : 'C'; a.download = `rosette_${s}${currentRotationOrder}_${t}.json`; a.href = url; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
-            function loadJson(event) { const f = event.target.files[0]; if (!f || !f.type.match('application/json')) { alert("Please select JSON."); loadFile.value = null; return; } const r = new FileReader(); r.onload = (e) => { try { const d = JSON.parse(e.target.result); if (!d || typeof d.rotationOrder !== 'number' || typeof d.isReflectionEnabled !== 'boolean' || !Array.isArray(d.actions)) throw new Error("Invalid Rosette JSON."); clearCanvas(true); currentRotationOrder = d.rotationOrder; isReflectionEnabled = d.isReflectionEnabled; const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`); if (rotRadio) rotRadio.checked = true; else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; reflectionToggle.checked = isReflectionEnabled; drawingActions = d.actions; updateSelectedLabels(); applyCursorStyle(); drawSlices(); redrawAllActions(); history = []; historyIndex = -1; lastKnownCanvasState = null; saveState(); alert(`Loaded "${f.name}".`); } catch (err) { console.error("Load JSON error:", err); alert("Load failed: " + err.message); } finally { loadFile.value = null; } }; r.onerror = () => { alert("Cannot read file."); loadFile.value = null; }; r.readAsText(f); }
+            function saveJson() { const data = { version: 1.3, rotationOrder: currentRotationOrder, isReflectionEnabled: isReflectionEnabled, actions: drawingActions }; const str = JSON.stringify(data, null, 2); const blob = new Blob([str], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); const t = new Date().toISOString().replace(/[:.]/g, '-'); const s = isReflectionEnabled ? 'D' : 'C'; a.download = `rosette_${s}${currentRotationOrder}_${t}.json`; a.href = url; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+            function loadJson(event) { const f = event.target.files[0]; if (!f || !f.type.match('application/json')) { alert("Please select JSON."); loadFile.value = null; return; } const r = new FileReader(); r.onload = (e) => { try { const d = JSON.parse(e.target.result); if (!d || typeof d.rotationOrder !== 'number' || typeof d.isReflectionEnabled !== 'boolean' || !Array.isArray(d.actions)) throw new Error("Invalid Rosette JSON."); clearCanvas(true); currentRotationOrder = d.rotationOrder; isReflectionEnabled = d.isReflectionEnabled; const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`); if (rotRadio) rotRadio.checked = true; else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; reflectionToggle.checked = isReflectionEnabled; drawingActions = d.actions; updateSettings(); updateSelectedLabels(); applyCursorStyle(); drawSlices(); redrawAllActions(); history = []; historyIndex = -1; lastKnownCanvasState = null; saveState(); alert(`Loaded "${f.name}".`); } catch (err) { console.error("Load JSON error:", err); alert("Load failed: " + err.message); } finally { loadFile.value = null; } }; r.onerror = () => { alert("Cannot read file."); loadFile.value = null; }; r.readAsText(f); }
 
             // --- Download Image ---
             function downloadCanvasImage() { const canvasToDownload = canvas; const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); const symType = isReflectionEnabled ? 'D' : 'C'; const filename = `rosette_pattern_${symType}${currentRotationOrder}_${timestamp}.png`; const link = document.createElement('a'); link.download = filename; try { link.href = canvasToDownload.toDataURL('image/png'); document.body.appendChild(link); link.click(); document.body.removeChild(link); } catch (e) { console.error("Download image error:", e); alert("Failed to create download image."); } }
 
             // --- Initial Setup Calls ---
             updateSettings(); updateSelectedLabels(); applyCursorStyle(); resizeCanvas(); updateUndoRedoButtons(); saveState();
-            console.log("Rosette Symmetry (v1.8 - UI Refresh) Initialized.");
+            console.log("Rosette Symmetry (v1.10 - Edge Fix) Initialized.");
         }); // End DOMContentLoaded
     </script>
 
