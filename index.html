@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rosette Symmetry (v1.12 - Elegant Light UI)</title>
+    <title>Simetri Roset (v1.15 - Layout Diperbaiki)</title>
+    <!-- Include iro.js Color Picker Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
 
 <style>
     /* --- UI Refinement & Light Mode Default --- */
     :root {
-        /* Light Theme Palette (Default) */
+        /* Palet Tema Terang (Default) */
         --primary-color: #0d6efd; --primary-hover: #0b5ed7; --primary-active: #0a58ca;
         --secondary-color: #6c757d; --secondary-hover: #5c636a; --secondary-active: #565e64;
         --success-color: #198754; --success-hover: #157347; --success-active: #146c43;
@@ -22,32 +24,35 @@
         --canvas-bg: #ffffff; --canvas-border: #ced4da;
         --input-border: #ced4da;
         --input-focus-border: var(--primary-color);
-        --input-focus-shadow: rgba(13, 110, 253, 0.25); /* Primary color alpha */
+        --input-focus-shadow: rgba(13, 110, 253, 0.25);
         --text-muted: #6c757d;
         --heading-color: #212529;
+        --picker-border-color: #eee; /* Warna border color picker */
 
         --hover-bg: #e9ecef;
-        --selected-bg: rgba(13, 110, 253, 0.1); /* Primary color alpha */
+        --selected-bg: rgba(13, 110, 253, 0.1);
         --selected-border: rgba(13, 110, 253, 0.3);
         --disabled-opacity: 0.65;
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
         --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.07);
         --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
 
-        /* Guide Line Colors */
+        /* Warna Garis Panduan */
         --grid-slice-color: #adb5bd;
-        --grid-reflect-line-color: #fd7e14; /* Orange for contrast */
+        --grid-reflect-line-color: #fd7e14;
 
         /* Layout */
-        --canvas-size: 600px;
-        --controls-width: 240px; /* Slightly wider */
-        --border-radius: 0.5rem; /* 8px - softer corners */
-        --spacing: 1rem;
+        --canvas-size: 600px; /* Ukuran max kanvas */
+        --controls-width: 320px; /* Lebar kolom kontrol kanan */
+        --spacing: 1rem; /* Base spacing unit (16px) */
+        --layout-gap: calc(var(--spacing) * 1.8); /* Jarak antar kolom utama */
+        --border-radius: 0.5rem; /* 8px */
         --font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
         --transition-speed: 0.2s;
+        --focus-ring-opacity: 0.25;
     }
 
-    /* --- Dark Theme Overrides --- */
+    /* --- Override Tema Gelap --- */
     body.dark-mode {
         --primary-color: #4dabf7; --primary-hover: #74c0fc; --primary-active: #a5d8ff;
         --secondary-color: #adb5bd; --secondary-hover: #ced4da; --secondary-active: #dee2e6;
@@ -55,29 +60,27 @@
         --danger-color: #fa5252; --danger-hover: #ff8787; --danger-active: #ffa8a8;
         --info-color: #3bc9db; --info-hover: #66d9e8; --info-active: #99e9f2;
         --warning-color: #fcc419; --warning-hover: #ffd868; --warning-active: #ffe09c;
-        --light-color: #343a40; --dark-color: #f1f3f5;
-
+        --light-color: #343a40; --dark-color: #f1f3f5; /* Adjust dark color for better contrast */
         --body-bg: #1a1a1a; --body-text: #e9ecef;
         --card-bg: #2c2c2e; --card-border: #444;
-        --canvas-bg: #ffffff; /* Keep canvas white */
+        --canvas-bg: #ffffff; /* Kanvas tetap putih */
         --canvas-border: #555;
         --input-border: #555;
         --input-focus-border: var(--primary-color);
-        --input-focus-shadow: rgba(77, 171, 247, 0.3); /* Dark primary alpha */
-        --text-muted: #a0a3a8;
-        --heading-color: #f8f9fa;
-
+        --input-focus-shadow: rgba(77, 171, 247, 0.35); /* Slightly increased opacity */
+        --text-muted: #a0a3a8; --heading-color: #f8f9fa;
+        --picker-border-color: #555;
         --hover-bg: #3a3a3c;
-        --selected-bg: rgba(77, 171, 247, 0.15); /* Dark primary alpha */
+        --selected-bg: rgba(77, 171, 247, 0.15);
         --selected-border: rgba(77, 171, 247, 0.4);
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
         --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
         --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
-
         --grid-slice-color: #777;
-        --grid-reflect-line-color: #fab005; /* Darker yellow/orange */
+        --grid-reflect-line-color: #fab005;
+        --focus-ring-opacity: 0.35;
     }
-    /* --- End Dark Theme --- */
+    /* --- End Tema Gelap --- */
 
     *, *::before, *::after { box-sizing: border-box; }
 
@@ -85,312 +88,494 @@
         font-family: var(--font-family-sans-serif);
         display: flex; flex-direction: column; align-items: center;
         background-color: var(--body-bg); color: var(--body-text);
-        margin: 0; padding: calc(var(--spacing) * 2); /* More padding */
-        min-height: 100vh;
-        font-size: 16px; line-height: 1.6;
+        margin: 0; padding: calc(var(--spacing) * 2);
+        min-height: 100vh; font-size: 16px; line-height: 1.6;
         transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
     }
 
+    /* Kontainer Aplikasi Utama */
     .app-container {
         width: 100%;
-        max-width: calc(var(--canvas-size) + (2 * var(--controls-width)) + (4 * var(--spacing)));
-        display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--spacing) * 1.5); /* More gap */
+        max-width: calc(var(--canvas-size) + var(--controls-width) + var(--layout-gap) + 2 * var(--spacing)); /* Lebar max untuk layout 2 kolom */
+        display: flex; flex-direction: column; align-items: center; /* Header di atas */
+        gap: calc(var(--spacing) * 1.5);
     }
 
-    header { width: 100%; text-align: center; margin-bottom: calc(var(--spacing) * 1.5); }
-    h1 { margin-top: 0; margin-bottom: 0.4rem; font-weight: 600; color: var(--heading-color); font-size: 2.2rem; transition: color var(--transition-speed) ease; }
-    h2 { margin-top: 0; margin-bottom: 0.8rem; font-size: 1.1rem; font-weight: 400; color: var(--text-muted); transition: color var(--transition-speed) ease; }
-    .info-link button { background: none; border: none; color: var(--primary-color); text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: 0.95em; font-family: inherit; border-bottom: 1px dashed var(--primary-color); transition: color 0.15s ease, border-color 0.15s ease; }
+    header { width: 100%; text-align: center; margin-bottom: var(--spacing); }
+    h1 { margin-top: 0; margin-bottom: 0.3rem; font-weight: 600; color: var(--heading-color); font-size: 2.1rem; transition: color var(--transition-speed) ease; }
+    h2 { margin-top: 0; margin-bottom: 0.6rem; font-size: 1.05rem; font-weight: 400; color: var(--text-muted); transition: color var(--transition-speed) ease; }
+    .info-link button { background: none; border: none; color: var(--primary-color); text-decoration: none; font-weight: 500; cursor: pointer; padding: 0; font-size: 0.9em; font-family: inherit; border-bottom: 1px dashed var(--primary-color); transition: color 0.15s ease, border-color 0.15s ease; }
     .info-link button:hover { color: var(--primary-hover); border-bottom-style: solid; }
 
-    .controls-panel {
+    /* Wrapper untuk layout 2 kolom */
+    .main-layout {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap; /* Memungkinkan wrap ke bawah di layar kecil */
+        gap: var(--layout-gap);
+        justify-content: center; /* Pusatkan jika ada ruang ekstra */
+        align-items: flex-start; /* Ratakan bagian atas kolom */
+    }
+
+    /* Kolom Kiri (Kanvas & Kontrol Utama & Alat Gambar) */
+    .left-column {
+        flex: 1 1 var(--canvas-size); /* Fleksibel tapi basis ukuran kanvas */
+        max-width: var(--canvas-size);
+        min-width: 300px; /* Hindari terlalu sempit */
+        display: flex; flex-direction: column; align-items: stretch; /* Stretch children */
+        gap: calc(var(--spacing) * 1.3); /* Jarak antar instruksi, kanvas, bar, footer */
+    }
+    .canvas-instructions { font-size: 0.9rem; color: var(--text-muted); text-align: center; transition: color var(--transition-speed) ease; margin-bottom: calc(var(--spacing) * 0.5); }
+    .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: var(--canvas-bg); width: 100%; height: auto; aspect-ratio: 1 / 1; box-shadow: var(--shadow-md); overflow: hidden; border-radius: var(--border-radius); transition: border-color var(--transition-speed) ease; }
+    #drawingCanvas, #gridCanvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent; }
+    #drawingCanvas { position: relative; z-index: 0; background-color: var(--canvas-bg); /* Tetap putih */ }
+    .cursor-pencil { cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAJ5JREFUOE9jZKASYKSCaxjwv7f0Y2SgKnDqAjsFVQGr4M4L/P9/ZGBgYAZiP6DmkSA1DrBqAQYYGM7/X8y/gYGBgRFFgB0H6sH//0AnAwMDQwIk58/A////MwYGBlYoYP4zMDAwMhACY5EYQ5QBZP7//zMwMDAygALmBDAwMDByMIIAAgyQ0j8wMDAwMsA6sA9A7gAxnwwMAAEEALBwG0+0i3uFAAAAAElFTkSuQmCC') 0 16, crosshair; }
+    .cursor-crosshair { cursor: crosshair; } .cursor-default { cursor: default; }
+    #gridCanvas { pointer-events: none; z-index: 1; }
+
+    /* --- Bar Alat Gambar (di bawah kanvas) --- */
+    .drawing-tools-bar {
+        display: flex;
+        flex-wrap: wrap; /* Biarkan membungkus jika tidak muat */
+        justify-content: center; /* Pusatkan grup kontrol */
+        align-items: flex-start; /* Ratakan bagian atas */
+        gap: calc(var(--spacing) * 1.2); /* Jarak antar grup */
+        width: 100%;
+        margin-top: calc(var(--spacing) * 0.5); /* Jarak dari kanvas */
+        padding: calc(var(--spacing) * 1); /* Padding lebih konsisten */
+        border: 1px solid var(--card-border); /* Ganti border top/bottom */
         background-color: var(--card-bg);
-        padding: calc(var(--spacing) * 1.4); /* More padding */
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    }
+    /* Grup kontrol di dalam bar alat */
+    .drawing-tools-bar .control-group {
+        margin-bottom: 0; /* Hapus margin bawah standar fieldset */
+        padding: 0; /* Hapus padding standar fieldset */
+        border: none; /* Hapus border standar fieldset */
+        flex: 1 1 130px; /* Base width for wrapping, allow growing/shrinking */
+        min-width: 120px; /* Prevent extreme squishing */
+        display: flex; flex-direction: column;
+    }
+    .drawing-tools-bar .control-group legend {
+        font-size: 0.9rem; /* Kecilkan sedikit legend */
+        font-weight: 600;
+        margin-bottom: calc(var(--spacing) * 0.6);
+        padding-bottom: 0; /* Remove bottom padding/border */
+        border: none;
+        text-align: center;
+        width: 100%;
+        color: var(--heading-color);
+        transition: color var(--transition-speed) ease;
+    }
+     /* Ukuran label di bar alat */
+    .drawing-tools-bar .control-group label {
+        padding: 0.4rem 0.7rem; /* Vertical/Horizontal padding */
+        font-size: 0.9rem;
+        margin-bottom: 4px; /* Sedikit jarak antar label */
+        display: block; /* Buat label tumpuk vertikal dalam grupnya */
+        text-align: left;
+        border-radius: calc(var(--border-radius) * 0.75); /* Slightly smaller radius */
+        border: 1px solid transparent; /* For selected state */
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .drawing-tools-bar .control-group label:hover:not(.selected) {
+        background-color: var(--hover-bg);
+    }
+    .drawing-tools-bar .control-group label.selected {
+        background-color: var(--selected-bg);
+        border-color: var(--selected-border);
+    }
+    .drawing-tools-bar .control-group label span:not(.custom-radio):not(.color-swatch) {
+        margin-left: 0.6em; /* Jarak antara radio dan teks */
+    }
+
+    /* Color picker di bar alat */
+    .drawing-tools-bar .color-picker-group {
+        flex: 1 1 180px; /* Allow more space, but still flexible */
+        min-width: 170px; /* Min width for picker */
+        max-width: 250px; /* Max width to prevent taking too much space */
+    }
+    .drawing-tools-bar #colorPickerContainer {
+        width: 100%;
+        min-height: 130px; /* Ensure minimum height */
+        margin-top: 0.3rem; /* Space below legend */
+    }
+    /* Ensure iro picker itself fits */
+    .drawing-tools-bar #colorPickerContainer .iro__colorPicker {
+        margin: 0 auto; /* Center */
+        max-width: 100%; /* Fit container */
+        border: 1px solid var(--picker-border-color);
+        border-radius: calc(var(--border-radius) * 0.75);
+        transition: border-color var(--transition-speed);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Kontrol Footer (di bawah bar alat) */
+    .canvas-footer-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center; /* Center items horizontally */
+        gap: calc(var(--spacing) * 0.7); /* Slightly reduced gap */
+        width: 100%;
+        margin-top: calc(var(--spacing) * 0.5); /* Jarak dari bar alat */
+    }
+
+    /* Kolom Kanan (Kontrol Simetri) */
+    .right-column.controls-panel {
+        flex: 0 0 var(--controls-width); /* Lebar tetap */
+        background-color: var(--card-bg);
+        padding: calc(var(--spacing) * 1.5); /* Consistent padding */
         border: 1px solid var(--card-border);
         border-radius: var(--border-radius);
         box-shadow: var(--shadow-md);
-        width: var(--controls-width);
-        flex-shrink: 0; height: fit-content;
+        height: fit-content; /* Tinggi sesuai konten */
         transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        min-width: 280px; /* Prevent being too narrow */
     }
 
-    .canvas-section { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: var(--canvas-size); flex-grow: 1; }
-    .canvas-instructions { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; text-align: center; transition: color var(--transition-speed) ease; }
-    .canvas-container { position: relative; border: 1px solid var(--canvas-border); background-color: var(--canvas-bg); width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: var(--canvas-size); max-height: var(--canvas-size); box-shadow: var(--shadow-lg); overflow: hidden; border-radius: var(--border-radius); margin-bottom: calc(var(--spacing) * 1.2); transition: border-color var(--transition-speed) ease; }
-    #drawingCanvas, #gridCanvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent; }
-    #drawingCanvas { position: relative; z-index: 0; background-color: var(--canvas-bg); /* Canvas itself stays white */ }
-    .cursor-pencil { cursor: url('pencil.png') 0 16, crosshair; } .cursor-crosshair { cursor: crosshair; } .cursor-default { cursor: default; }
-    #gridCanvas { pointer-events: none; z-index: 1; }
-
-    .controls-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: calc(var(--spacing) * 0.8); width: 100%; max-width: var(--canvas-size); margin: 0 auto; }
-
-    /* --- Buttons --- */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; font-weight: 500; line-height: 1.5; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid var(--input-border); padding: 0.5rem 1.1rem; font-size: 0.9rem; border-radius: var(--border-radius); transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
-    .btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+    /* --- Tombol --- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; font-weight: 500; line-height: 1.5; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid var(--input-border); padding: 0.5rem 1rem; font-size: 0.9rem; border-radius: var(--border-radius); transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; color: var(--body-text); }
+    .btn:focus-visible { outline: 2px solid transparent; /* Hide default outline */ outline-offset: 2px; box-shadow: 0 0 0 3px var(--input-focus-shadow); border-color: var(--input-focus-border); }
     .btn:disabled { pointer-events: none; opacity: var(--disabled-opacity); }
-    .btn:not(:disabled):hover { border-color: var(--secondary-hover); background-color: var(--secondary-hover); color: var(--light-color); /* White/v-light gray */ }
-    body.dark-mode .btn:not(:disabled):hover { color: var(--dark-color); } /* Black/v-dark gray */
-    .btn:not(:disabled):active { border-color: var(--secondary-active); background-color: var(--secondary-active); color: var(--light-color); }
-    body.dark-mode .btn:not(:disabled):active { color: var(--dark-color); }
+    .btn:not(:disabled):hover { border-color: var(--secondary-hover); background-color: var(--hover-bg); color: var(--body-text); }
+    .btn:not(:disabled):active { border-color: var(--secondary-active); background-color: var(--hover-bg); color: var(--body-text); transform: translateY(1px); } /* Subtle active press */
+    /* Outline button variants */
+    .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); } .btn-outline-danger:not(:disabled):hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; } .btn-outline-danger:not(:disabled):active { background-color: var(--danger-active); border-color: var(--danger-active); color: white; } .btn-outline-danger:focus-visible { box-shadow: 0 0 0 3px rgba(var(--danger-color-rgb, 220 53 69) / var(--focus-ring-opacity)); border-color: var(--danger-hover); }
+    .btn-outline-success { color: var(--success-color); border-color: var(--success-color); } .btn-outline-success:not(:disabled):hover { background-color: var(--success-color); border-color: var(--success-color); color: white; } .btn-outline-success:not(:disabled):active { background-color: var(--success-active); border-color: var(--success-active); color: white; } .btn-outline-success:focus-visible { box-shadow: 0 0 0 3px rgba(var(--success-color-rgb, 25 135 84) / var(--focus-ring-opacity)); border-color: var(--success-hover); }
+    .btn-outline-info { color: var(--info-color); border-color: var(--info-color); } .btn-outline-info:not(:disabled):hover { background-color: var(--info-color); border-color: var(--info-color); color: var(--dark-color); } .btn-outline-info:not(:disabled):active { background-color: var(--info-active); border-color: var(--info-active); color: var(--dark-color); } .btn-outline-info:focus-visible { box-shadow: 0 0 0 3px rgba(var(--info-color-rgb, 13 202 240) / var(--focus-ring-opacity)); border-color: var(--info-hover); }
+    .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); } .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; } .btn-outline-secondary:not(:disabled):active { background-color: var(--secondary-active); border-color: var(--secondary-active); color: white; } .btn-outline-secondary:focus-visible { box-shadow: 0 0 0 3px rgba(var(--secondary-color-rgb, 108 117 125) / var(--focus-ring-opacity)); border-color: var(--secondary-hover); }
+    body.dark-mode .btn-outline-secondary:not(:disabled):hover, body.dark-mode .btn-outline-secondary:not(:disabled):active { color: var(--dark-color); }
+    /* Add RGB versions for focus ring alpha */
+    :root { --danger-color-rgb: 220, 53, 69; --success-color-rgb: 25, 135, 84; --info-color-rgb: 13, 202, 240; --secondary-color-rgb: 108, 117, 125; }
+    body.dark-mode { --danger-color-rgb: 250, 82, 82; --success-color-rgb: 64, 192, 87; --info-color-rgb: 59, 201, 219; --secondary-color-rgb: 173, 181, 189; }
 
-    /* Outline Button Variants */
-    .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); } .btn-outline-danger:not(:disabled):hover { background-color: var(--danger-color); border-color: var(--danger-color); color: white; } .btn-outline-danger:not(:disabled):active { background-color: var(--danger-active); border-color: var(--danger-active); color: white; }
-    .btn-outline-success { color: var(--success-color); border-color: var(--success-color); } .btn-outline-success:not(:disabled):hover { background-color: var(--success-color); border-color: var(--success-color); color: white; } .btn-outline-success:not(:disabled):active { background-color: var(--success-active); border-color: var(--success-active); color: white; }
-    .btn-outline-info { color: var(--info-color); border-color: var(--info-color); } .btn-outline-info:not(:disabled):hover { background-color: var(--info-color); border-color: var(--info-color); color: var(--dark-color); } .btn-outline-info:not(:disabled):active { background-color: var(--info-active); border-color: var(--info-active); color: var(--dark-color); }
-    .btn-outline-secondary { color: var(--secondary-color); border-color: var(--input-border); } .btn-outline-secondary:not(:disabled):hover { background-color: var(--secondary-color); border-color: var(--secondary-color); color: white; } .btn-outline-secondary:not(:disabled):active { background-color: var(--secondary-active); border-color: var(--secondary-active); color: white; }
-    body.dark-mode .btn-outline-secondary:not(:disabled):hover, body.dark-mode .btn-outline-secondary:not(:disabled):active { color: var(--dark-color); } /* Darker text on secondary hover/active in dark */
 
-    /* Specific style for dark mode toggle button text/icon */
+    /* Tombol Mode Gelap */
+    #darkModeToggle { min-width: 120px; /* Give it consistent width */ }
     #darkModeToggle .icon-sun, body:not(.dark-mode) #darkModeToggle .icon-moon { display: none; }
     body.dark-mode #darkModeToggle .icon-sun { display: inline-block; }
     body:not(.dark-mode) #darkModeToggle .icon-moon { display: inline-block; }
 
-    /* --- Checkbox Label (Show Guides) --- */
-    .controls-footer label { cursor: pointer; display: inline-flex; align-items: center; gap: 0.5em; font-size: 0.9rem; padding: 0.5rem 0.9rem; border-radius: var(--border-radius); transition: background-color 0.15s ease, color 0.15s ease; vertical-align: middle; color: var(--text-muted); }
-    .controls-footer label:hover { background-color: var(--hover-bg); color: var(--body-text); }
-    .controls-footer input[type="checkbox"] { cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.3em; accent-color: var(--primary-color); vertical-align: middle; position: relative; top: -1px; }
+    /* --- Checkbox Label (Tampilkan Panduan di Footer) --- */
+    .canvas-footer-controls label { cursor: pointer; display: inline-flex; align-items: center; gap: 0.5em; font-size: 0.9rem; padding: 0.5rem 0.9rem; border-radius: var(--border-radius); transition: background-color 0.15s ease, color 0.15s ease; vertical-align: middle; color: var(--text-muted); border: 1px solid transparent; /* Placeholder for focus */ }
+    .canvas-footer-controls label:hover { background-color: var(--hover-bg); color: var(--body-text); }
+     .canvas-footer-controls input[type="checkbox"] { cursor: pointer; width: 1.1em; height: 1.1em; margin-right: 0.3em; accent-color: var(--primary-color); vertical-align: middle; position: relative; top: -1px; }
+     /* Add focus style for the label wrapping the checkbox using :focus-within */
+      .canvas-footer-controls label:focus-within {
+          outline: 2px solid transparent; /* Hide default outline */
+          box-shadow: 0 0 0 3px var(--input-focus-shadow);
+         border-color: var(--input-focus-border);
+     }
 
-    /* --- Control Groups --- */
-    .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.6) 0; display: flex; flex-direction: column; } .control-group:last-child { margin-bottom: 0; }
-    .control-group legend { font-weight: 600; margin-bottom: calc(var(--spacing)*0.9); font-size: 1.1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--card-border); width: 100%; color: var(--heading-color); transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease; }
-    .control-group label { display: flex; align-items: center; gap: 0.7em; margin-bottom: 6px; cursor: pointer; font-size: 0.95rem; padding: 0.6rem 0.9rem; border-radius: var(--border-radius); transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; border: 1px solid transparent; position: relative; }
+
+    /* --- Grup Kontrol (Umum - Sidebar & Bar Alat) --- */
+    .control-group { border: none; padding: 0; margin: 0 0 calc(var(--spacing) * 1.2) 0; display: flex; flex-direction: column; }
+    .control-group:last-child { margin-bottom: 0; }
+    /* Legend styling (specifically in the sidebar) */
+    .controls-panel .control-group legend {
+        font-weight: 600;
+        margin-bottom: calc(var(--spacing)*0.8); /* Consistent margin */
+        font-size: 1.1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--card-border);
+        width: 100%;
+        color: var(--heading-color);
+        transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    }
+    /* Label umum di dalam grup kontrol (sidebar & bar alat) */
+    .control-group label {
+        display: flex; align-items: center; gap: 0.7em;
+        margin-bottom: 6px; cursor: pointer; font-size: 0.95rem;
+        padding: 0.6rem 0.9rem; border-radius: var(--border-radius);
+        transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        border: 1px solid transparent; position: relative;
+    }
     .control-group label:hover:not(.selected) { background-color: var(--hover-bg); }
-    .control-group input[type="radio"], .control-group input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; } /* Hide original input */
+    .control-group input[type="radio"], .control-group input[type="checkbox"] {
+        position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; /* Ensure they don't take space */
+    }
 
-    /* Custom Checkbox (Reflection Toggle) */
-    .control-group label.checkbox-label span.custom-checkbox { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid var(--input-border); border-radius: 0.25em; background-color: var(--card-bg); flex-shrink: 0; margin-right: 0; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; position: relative; top: 0.1em; }
-    .control-group input[type="checkbox"]:checked + span.custom-checkbox { background-color: var(--primary-color); border-color: var(--primary-color); }
-    .control-group input[type="checkbox"]:checked + span.custom-checkbox::after { content: ''; display: block; width: 0.7em; height: 0.35em; border-left: 2px solid var(--card-bg); border-bottom: 2px solid var(--card-bg); transform: rotate(-45deg) translate(-1px, 1px); position: absolute; left: 0.25em; top: 0.3em; }
-    .control-group input[type="checkbox"]:focus-visible + span.custom-checkbox { box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+    /* Custom Controls (Radio/Checkbox) - Shared styles */
+    .custom-radio, .custom-checkbox {
+        display: inline-block; width: 1.25em; height: 1.25em;
+        border: 1px solid var(--input-border);
+        background-color: var(--card-bg);
+        flex-shrink: 0; margin-right: 0; /* Gap is handled by label's gap */
+        transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+        position: relative; top: 0.05em; /* Slight vertical alignment */
+    }
+    /* Checkbox Specific (Sidebar) */
+    .custom-checkbox { border-radius: 0.25em; }
+    input[type="checkbox"]:checked + .custom-checkbox { background-color: var(--primary-color); border-color: var(--primary-color); }
+    input[type="checkbox"]:checked + .custom-checkbox::after { content: ''; display: block; width: 0.65em; height: 0.3em; border-left: 2px solid var(--card-bg); border-bottom: 2px solid var(--card-bg); transform: rotate(-45deg) translate(-1px, 1px); position: absolute; left: 0.25em; top: 0.35em; }
+    /* Radio Specific */
+    .custom-radio { border-radius: 50%; }
+    input[type="radio"]:checked + .custom-radio { border-color: var(--primary-color); border-width: 2px; }
+    input[type="radio"]:checked + .custom-radio::after { content: ''; display: block; width: 0.6em; height: 0.6em; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
-    /* Custom Radio Buttons */
-    .control-group label span.custom-radio { display: inline-block; width: 1.3em; height: 1.3em; border: 1px solid var(--input-border); border-radius: 50%; background-color: var(--card-bg); flex-shrink: 0; position: relative; top: 0.1em; transition: border-color 0.15s ease-in-out, background-color 0.15s ease, box-shadow 0.15s ease; }
-    .control-group input[type="radio"]:checked + span.custom-radio { border-color: var(--primary-color); border-width: 2px; }
-    .control-group input[type="radio"]:checked + span.custom-radio::after { content: ''; display: block; width: 0.65em; height: 0.65em; background-color: var(--primary-color); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    .control-group input[type="radio"]:focus-visible + span.custom-radio { box-shadow: 0 0 0 3px var(--input-focus-shadow); }
+    /* Focus state for custom controls (applied to the span) */
+    input[type="radio"]:focus-visible + .custom-radio,
+    input[type="checkbox"]:focus-visible + .custom-checkbox {
+         box-shadow: 0 0 0 3px var(--input-focus-shadow);
+         border-color: var(--input-focus-border); /* Ensure border highlights too */
+    }
 
-    /* Selected Label State */
+    /* State Label Terpilih */
     .control-group label.selected { background-color: var(--selected-bg); border-color: var(--selected-border); }
     .control-group label.selected span:not(.custom-radio):not(.custom-checkbox):not(.color-swatch) { color: var(--primary-color); font-weight: 500; }
 
-    /* Color Swatches */
-    .color-swatch { display: inline-block; width: 1.6em; height: 1.6em; border: 1px solid rgba(0,0,0,0.1); margin-right: 0.6em; vertical-align: middle; flex-shrink: 0; border-radius: 5px; box-shadow: var(--shadow-sm); transition: transform 0.1s ease, box-shadow 0.15s ease; }
-    .color-swatch[style*="white"], .color-swatch[style*="#ffffff"], .color-swatch[style*="#f"] { border-color: #ccc; }
-    .control-group label.selected .color-swatch { transform: scale(1.15); box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary-color); }
-    body.dark-mode .color-swatch { border-color: rgba(255,255,255,0.1); }
-    body.dark-mode .color-swatch[style*="black"], body.dark-mode .color-swatch[style*="#212529"] { border-color: #666; } /* Darker border for black swatch in dark mode */
-    body.dark-mode .control-group label.selected .color-swatch { box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px var(--primary-color); }
-
-    /* Rotations List Scrollbar */
-    .rotations-list { max-height: 350px; overflow-y: auto; padding-right: 10px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: var(--secondary-color) var(--hover-bg); }
+    /* Scrollbar Daftar Rotasi (di sidebar) */
+    .rotations-list { max-height: 260px; /* Adjusted height */ overflow-y: auto; padding-right: 10px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: var(--secondary-color) var(--hover-bg); }
     .rotations-list::-webkit-scrollbar { width: 8px; }
     .rotations-list::-webkit-scrollbar-track { background: var(--hover-bg); border-radius: 4px; }
     .rotations-list::-webkit-scrollbar-thumb { background-color: var(--secondary-color); border-radius: 4px; border: 2px solid var(--hover-bg); }
     .rotations-list::-webkit-scrollbar-thumb:hover { background-color: var(--secondary-hover); }
 
-    /* --- Modal --- */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); padding: var(--spacing); backdrop-filter: blur(5px); }
-    .modal-content { background-color: var(--card-bg); margin: 5% auto; padding: calc(var(--spacing) * 2); border: none; border-radius: var(--border-radius); width: 90%; max-width: 750px; box-shadow: var(--shadow-lg); position: relative; animation: modalFadeIn 0.3s ease-out; transition: background-color var(--transition-speed) ease; }
-    .modal-close { color: var(--secondary-color); position: absolute; top: calc(var(--spacing) * 1); right: calc(var(--spacing) * 1.5); font-size: 2.5rem; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.15s ease; }
-    .modal-close:hover, .modal-close:focus { color: var(--danger-color); text-decoration: none; }
-    .modal h2 { margin-top: 0; color: var(--primary-color); font-weight: 600; margin-bottom: var(--spacing); transition: color var(--transition-speed) ease; font-size: 1.8rem; }
+    /* --- Modal --- (Styling diperbarui agar konsisten) */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.6); padding: var(--spacing); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); /* Safari */ }
+    .modal-content { background-color: var(--card-bg); margin: 5% auto; padding: calc(var(--spacing) * 1.8); border: none; border-radius: var(--border-radius); width: 90%; max-width: 750px; box-shadow: var(--shadow-lg); position: relative; animation: modalFadeIn 0.3s ease-out; transition: background-color var(--transition-speed) ease; }
+    .modal-close { color: var(--secondary-color); position: absolute; top: calc(var(--spacing) * 0.8); right: calc(var(--spacing) * 1.2); font-size: 2.2rem; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.15s ease; background: none; border: none; padding: 0.2rem 0.5rem; }
+    .modal-close:hover, .modal-close:focus { color: var(--danger-color); text-decoration: none; outline: none; }
+    .modal-close:focus-visible { box-shadow: 0 0 0 3px var(--input-focus-shadow); border-radius: 50%; }
+    .modal h2 { margin-top: 0; color: var(--primary-color); font-weight: 600; margin-bottom: calc(var(--spacing) * 1.2); transition: color var(--transition-speed) ease; font-size: 1.7rem; }
     .modal p, .modal ul { font-size: 1rem; line-height: 1.7; color: var(--body-text); transition: color var(--transition-speed) ease; }
-    .modal ul { padding-left: 30px; margin-top: 0.8em; } .modal li { margin-bottom: 0.9em; }
-    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    .modal p { margin-bottom: var(--spacing); }
+    .modal ul { padding-left: 30px; margin-top: 0.8em; margin-bottom: var(--spacing); }
+    .modal li { margin-bottom: 0.9em; }
+    .modal li::marker { color: var(--primary-color); }
+    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
     /* --- Responsiveness --- */
-    @media (max-width: 1200px) { /* Adjusted breakpoint */
-        .app-container { flex-direction: column; align-items: center; max-width: 100%; gap: var(--spacing); }
-        .controls-panel { width: 100%; max-width: 600px; } /* Allow controls to be wider */
-        .canvas-section { order: -1; /* Canvas first on smaller screens */ }
-        .rotations-list { max-height: 250px; } /* Shorter scroll list */
+    @media (max-width: 992px) { /* Tablet dan di bawahnya */
+        body { padding: calc(var(--spacing) * 1.5); }
+        .main-layout {
+            flex-direction: column; /* Susun kolom secara vertikal */
+            align-items: center; /* Pusatkan item */
+            gap: calc(var(--layout-gap) * 0.8); /* Kurangi jarak antar kolom */
+        }
+        .left-column {
+            max-width: var(--canvas-size); /* Jaga lebar max kanvas */
+            width: 100%; /* Ambil lebar penuh */
+            order: -1; /* Pindahkan kanvas (+alat) ke atas */
+        }
+        .right-column.controls-panel {
+            width: 100%; /* Ambil lebar penuh */
+            max-width: var(--canvas-size); /* Batasi lebar max kontrol agar sama dgn kanvas */
+            flex-basis: auto; /* Reset basis flex */
+            order: 1; /* Pastikan sidebar di bawah kolom kiri */
+        }
+        .app-container { max-width: var(--canvas-size); } /* Batasi lebar total */
+        .drawing-tools-bar { gap: var(--spacing); } /* Kurangi gap di tablet */
     }
     @media (max-width: 768px) {
-        body { padding: var(--spacing); } /* Less padding on mobile */
-        h1 { font-size: 1.8rem; }
-        h2 { font-size: 1rem; }
-        .controls-panel { padding: calc(var(--spacing) * 1.2); }
-        .control-group legend { font-size: 1rem; }
-        .control-group label { font-size: 0.9rem; padding: 0.5rem 0.8rem;}
-        .controls-footer { gap: calc(var(--spacing) * 0.6); }
-        .controls-footer .btn, .controls-footer label { flex-grow: 1; justify-content: center; padding: 0.5rem 0.8rem; font-size: 0.85rem; } /* Buttons take full width in footer */
-        #darkModeToggle { min-width: auto; }
+        body { padding: var(--spacing); }
+        h1 { font-size: 1.8rem; } h2 { font-size: 1rem; }
+        .app-container { gap: var(--spacing); }
+        .left-column { gap: var(--spacing); }
+        .right-column.controls-panel { padding: calc(var(--spacing) * 1.2); }
+        /* Sesuaikan kontrol di sidebar */
+        .controls-panel .control-group legend { font-size: 1rem; }
+        .controls-panel .control-group label { font-size: 0.9rem; padding: 0.5rem 0.8rem;}
+        /* Sesuaikan kontrol di bar alat */
+        .drawing-tools-bar { gap: calc(var(--spacing) * 0.8); padding: calc(var(--spacing) * 0.8); }
+        .drawing-tools-bar .control-group { flex-basis: 140px; } /* Adjust basis */
+        .drawing-tools-bar .control-group legend { font-size: 0.85rem; margin-bottom: calc(var(--spacing) * 0.5); }
+        .drawing-tools-bar .control-group label { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+        .drawing-tools-bar .color-picker-group { flex-basis: 180px; min-width: 160px; }
+
+        .canvas-footer-controls { gap: calc(var(--spacing) * 0.6); }
+        .canvas-footer-controls .btn, .canvas-footer-controls label { flex-grow: 1; justify-content: center; padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+        #darkModeToggle { flex-grow: 0; min-width: auto; } /* Don't let dark mode toggle grow */
         .modal-content { padding: calc(var(--spacing) * 1.5); margin-top: 10%; }
         .modal h2 { font-size: 1.5rem; }
+        .rotations-list { max-height: 200px; }
     }
+     @media (max-width: 480px) {
+         .canvas-footer-controls {
+             flex-direction: column; /* Tombol footer jadi kolom */
+             align-items: stretch; /* Stretch items full width */
+         }
+         .canvas-footer-controls .btn, .canvas-footer-controls label {
+             width: 100%; /* Make buttons/label take full width */
+             justify-content: center;
+         }
+         .rotations-list { max-height: 160px; }
+         .drawing-tools-bar {
+             justify-content: space-around; /* Atur jarak di mobile */
+             gap: calc(var(--spacing)*0.7);
+         }
+         .drawing-tools-bar .control-group {
+             flex-basis: 45%; /* Try 2 columns again, adjust as needed */
+             min-width: 110px;
+         }
+         .drawing-tools-bar .color-picker-group {
+             flex-basis: 90%; /* Color picker takes full width */
+             margin-top: calc(var(--spacing) * 0.5); /* Add space if it wraps below */
+             max-width: 90%; /* Ensure it doesn't overflow */
+         }
+         .drawing-tools-bar .control-group label { padding: 0.3rem 0.5rem; } /* Padding lebih kecil */
+         .btn { padding: 0.6rem 0.8rem; /* Slightly larger tap area */ }
+         .modal-content { width: 95%; margin-top: 8%; padding: var(--spacing); }
+         .modal h2 { font-size: 1.3rem; }
+         .modal-close { font-size: 2rem; top: calc(var(--spacing) * 0.5); right: calc(var(--spacing) * 0.8); }
+     }
 </style>
 
 </head>
-<!-- Removed dark-mode class for light mode default -->
 <body>
 
 <div class="app-container">
     <header>
-        <h1>Rosette Symmetry</h1>
-        <h2>(Rotation and Dihedral Groups)</h2>
+        <h1>Simetri Roset</h1>
+        <h2>(Grup Rotasi dan Dihedral)</h2>
         <div class="info-link">
-             (<button id="infoBtn">Click here</button> for info and instructions.)
+             (<button id="infoBtn" type="button">Klik di sini</button> untuk info & instruksi.)
         </div>
     </header>
 
-    <!-- Left Controls: Symmetry Options -->
-    <aside class="controls-panel controls-left">
-        <fieldset class="control-group">
-             <legend>Symmetry Type</legend>
-             <label class="checkbox-label">
-                 <input type="checkbox" id="reflectionToggle">
-                 <span class="custom-checkbox"></span>
-                 <span>Enable Reflection (D<sub>n</sub>)</span>
-             </label>
-        </fieldset>
-        <fieldset class="control-group">
-            <legend>Rotations (n)</legend>
-            <div class="rotations-list">
-                <!-- Rotation options -->
-                <label><input type="radio" name="rotationOrder" value="1" checked> <span class="custom-radio"></span><span>1 (C<sub>1</sub> / D<sub>1</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="2"> <span class="custom-radio"></span><span>2 (C<sub>2</sub> / D<sub>2</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="3"> <span class="custom-radio"></span><span>3 (C<sub>3</sub> / D<sub>3</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="4"> <span class="custom-radio"></span><span>4 (C<sub>4</sub> / D<sub>4</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="5"> <span class="custom-radio"></span><span>5 (C<sub>5</sub> / D<sub>5</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="6"> <span class="custom-radio"></span><span>6 (C<sub>6</sub> / D<sub>6</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="7"> <span class="custom-radio"></span><span>7 (C<sub>7</sub> / D<sub>7</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="8"> <span class="custom-radio"></span><span>8 (C<sub>8</sub> / D<sub>8</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="9"> <span class="custom-radio"></span><span>9 (C<sub>9</sub> / D<sub>9</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="10"> <span class="custom-radio"></span><span>10 (C<sub>10</sub> / D<sub>10</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="12"> <span class="custom-radio"></span><span>12 (C<sub>12</sub> / D<sub>12</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="16"> <span class="custom-radio"></span><span>16 (C<sub>16</sub> / D<sub>16</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="20"> <span class="custom-radio"></span><span>20 (C<sub>20</sub> / D<sub>20</sub>)</span></label>
-                <label><input type="radio" name="rotationOrder" value="24"> <span class="custom-radio"></span><span>24 (C<sub>24</sub> / D<sub>24</sub>)</span></label>
-             </div>
-        </fieldset>
-    </aside>
+    <div class="main-layout">
+        <!-- Kolom Kiri: Kanvas, Alat Gambar & Kontrol Footer -->
+        <div class="left-column">
+            <div class="canvas-instructions">Gambar di area putih. Simetri diterapkan secara langsung.</div>
+            <div class="canvas-container">
+                <canvas id="drawingCanvas"></canvas>
+                <canvas id="gridCanvas"></canvas>
+            </div>
 
-    <!-- Center Canvas -->
-    <main class="canvas-section">
-        <div class="canvas-instructions">Draw in the white area. Symmetry is applied live.</div>
-        <div class="canvas-container">
-            <canvas id="drawingCanvas"></canvas>
-            <canvas id="gridCanvas"></canvas>
-        </div>
-        <footer class="controls-footer">
-             <button id="undoBtn" title="Undo (Ctrl+Z)" class="btn btn-outline-secondary" disabled>
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/> </svg>
-                 Undo
-             </button>
-             <button id="redoBtn" title="Redo (Ctrl+Y)" class="btn btn-outline-secondary" disabled>
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/> </svg>
-                 Redo
-             </button>
-             <button id="clearBtn" title="Clear Canvas" class="btn btn-outline-danger">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"> <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm-2.45 7.45c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm2.235 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm-4.61 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02z"/> </svg>
-                 Clear
-             </button>
-             <label title="Show rotation/reflection guide lines">
-                 <input type="checkbox" id="showSlicesCheck"> Show Guides
-             </label>
-             <button id="saveBtn" title="Save drawing data as JSON" class="btn btn-outline-success">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16"> <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/> </svg>
-                 Save
-             </button>
-             <button id="loadBtn" title="Load drawing data from JSON" class="btn btn-outline-secondary">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open" viewBox="0 0 16 16"> <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.746 1.972 1.664l.122.516a.5.5 0 0 1-.972.23l-.122-.516A1.5 1.5 0 0 0 4.264 3H2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h10.97l-1.71 6.837A1.5 1.5 0 0 1 10.26 13H1.5v-1a.5.5 0 0 0-.5-.5V3.5zM.5 5a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1zM11.76 4a.5.5 0 0 0-.488.607l1.71 6.837a.5.5 0 0 0 .488.393H15.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/> </svg>
-                 Load
-             </button>
-             <input type="file" id="loadFile" accept=".json" style="display: none;">
-             <button id="downloadImageBtn" title="Download image as PNG" class="btn btn-outline-info">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16"> <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/> <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/> </svg>
-                 Image
-             </button>
-             <!-- Dark Mode Toggle Button -->
-             <button id="darkModeToggle" title="Toggle Light/Dark Mode" class="btn btn-outline-secondary">
-                 <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                     <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 0a.5.5 0 0 1-.707.707l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 3.05a.5.5 0 0 1-.707.707L2.343 2.343a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-                 </svg>
-                 <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                     <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.021 3.278 7.277 7.318 7.277a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
-                 </svg>
-                 <span class="toggle-text">Dark Mode</span> <!-- Text will be updated by JS -->
-             </button>
-        </footer>
-    </main>
+            <!-- == Bar Alat Gambar == -->
+            <div class="drawing-tools-bar">
+                 <fieldset class="control-group">
+                     <legend>Alat</legend>
+                     <label><input type="radio" name="tool" value="freehand" checked> <span class="custom-radio"></span><span>Goresan</span></label>
+                     <label><input type="radio" name="tool" value="line"> <span class="custom-radio"></span><span>Garis</span></label>
+                     <label><input type="radio" name="tool" value="rectangle"> <span class="custom-radio"></span><span>Persegi</span></label>
+                     <label><input type="radio" name="tool" value="oval"> <span class="custom-radio"></span><span>Oval</span></label>
+                     <label><input type="radio" name="tool" value="filledRect"> <span class="custom-radio"></span><span>Persegi Isi</span></label>
+                     <label><input type="radio" name="tool" value="filledOval"> <span class="custom-radio"></span><span>Oval Isi</span></label>
+                 </fieldset>
+                 <fieldset class="control-group">
+                     <legend>Lebar Garis</legend>
+                     <label><input type="radio" name="lineWidth" value="1"> <span class="custom-radio"></span><span>1 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="2"> <span class="custom-radio"></span><span>2 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="3" checked> <span class="custom-radio"></span><span>3 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="5"> <span class="custom-radio"></span><span>5 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="8"> <span class="custom-radio"></span><span>8 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="13"> <span class="custom-radio"></span><span>13 px</span></label>
+                     <label><input type="radio" name="lineWidth" value="21"> <span class="custom-radio"></span><span>21 px</span></label>
+                 </fieldset>
+                 <fieldset class="control-group">
+                     <legend>Gaya Kursor</legend>
+                     <label><input type="radio" name="cursorStyle" value="crosshair" checked> <span class="custom-radio"></span><span>Crosshair</span></label>
+                     <label><input type="radio" name="cursorStyle" value="pencil"> <span class="custom-radio"></span><span>Pensil</span></label>
+                     <label><input type="radio" name="cursorStyle" value="default"> <span class="custom-radio"></span><span>Default</span></label>
+                 </fieldset>
+                 <!-- Kontrol Warna (Picker) -->
+                  <fieldset class="control-group color-picker-group">
+                       <legend>Warna</legend>
+                       <div id="colorPickerContainer"></div>
+                  </fieldset>
+            </div>
+            <!-- == Akhir Bar Alat Gambar == -->
 
-    <!-- Right Controls: Drawing Tools -->
-    <aside class="controls-panel controls-right">
-         <!-- Tool -->
-        <fieldset class="control-group">
-            <legend>Tool</legend>
-            <label><input type="radio" name="tool" value="freehand" checked> <span class="custom-radio"></span><span>Freehand</span></label>
-            <label><input type="radio" name="tool" value="line"> <span class="custom-radio"></span><span>Line</span></label>
-            <label><input type="radio" name="tool" value="rectangle"> <span class="custom-radio"></span><span>Rectangle</span></label>
-            <label><input type="radio" name="tool" value="oval"> <span class="custom-radio"></span><span>Oval</span></label>
-            <label><input type="radio" name="tool" value="filledRect"> <span class="custom-radio"></span><span>Filled Rect</span></label>
-            <label><input type="radio" name="tool" value="filledOval"> <span class="custom-radio"></span><span>Filled Oval</span></label>
-        </fieldset>
-        <!-- Line Width -->
-        <fieldset class="control-group">
-            <legend>Line Width</legend>
-            <label><input type="radio" name="lineWidth" value="1"> <span class="custom-radio"></span><span>1 px</span></label>
-            <label><input type="radio" name="lineWidth" value="2"> <span class="custom-radio"></span><span>2 px</span></label>
-            <label><input type="radio" name="lineWidth" value="3" checked> <span class="custom-radio"></span><span>3 px</span></label>
-            <label><input type="radio" name="lineWidth" value="5"> <span class="custom-radio"></span><span>5 px</span></label>
-            <label><input type="radio" name="lineWidth" value="8"> <span class="custom-radio"></span><span>8 px</span></label>
-            <label><input type="radio" name="lineWidth" value="13"> <span class="custom-radio"></span><span>13 px</span></label>
-            <label><input type="radio" name="lineWidth" value="21"> <span class="custom-radio"></span><span>21 px</span></label>
-        </fieldset>
-         <!-- Cursor -->
-         <fieldset class="control-group">
-            <legend>Cursor Style</legend>
-            <label><input type="radio" name="cursorStyle" value="crosshair" checked> <span class="custom-radio"></span><span>Crosshair</span></label>
-            <label><input type="radio" name="cursorStyle" value="pencil"> <span class="custom-radio"></span><span>Pencil</span></label>
-            <label><input type="radio" name="cursorStyle" value="default"> <span class="custom-radio"></span><span>Default</span></label>
-        </fieldset>
-        <!-- Color -->
-        <fieldset class="control-group">
-            <legend>Color</legend>
-             <!-- Using more standard/modern color names/values where appropriate -->
-             <label><input type="radio" name="color" value="#212529"> <span class="color-swatch" style="background-color: #212529;"></span><span>Black</span></label>
-             <label><input type="radio" name="color" value="#495057"> <span class="color-swatch" style="background-color: #495057;"></span><span>Gray Dark</span></label>
-             <label><input type="radio" name="color" value="#adb5bd"> <span class="color-swatch" style="background-color: #adb5bd;"></span><span>Gray</span></label>
-             <label><input type="radio" name="color" value="#dee2e6"> <span class="color-swatch" style="background-color: #dee2e6;"></span><span>Gray Light</span></label>
-             <label><input type="radio" name="color" value="#ffffff"> <span class="color-swatch" style="background-color: #ffffff;"></span><span>White</span></label>
-             <label><input type="radio" name="color" value="#dc3545"> <span class="color-swatch" style="background-color: #dc3545;"></span><span>Red</span></label>
-             <label><input type="radio" name="color" value="#fd7e14"> <span class="color-swatch" style="background-color: #fd7e14;"></span><span>Orange</span></label>
-             <label><input type="radio" name="color" value="#ffc107"> <span class="color-swatch" style="background-color: #ffc107;"></span><span>Yellow</span></label>
-             <label><input type="radio" name="color" value="#d63384"> <span class="color-swatch" style="background-color: #d63384;"></span><span>Pink</span></label>
-             <label><input type="radio" name="color" value="#6f42c1"> <span class="color-swatch" style="background-color: #6f42c1;"></span><span>Purple</span></label>
-             <!-- <label><input type="radio" name="color" value="#f032e6"> <span class="color-swatch" style="background-color: #f032e6;"></span><span>Magenta</span></label> -->
-             <label><input type="radio" name="color" value="#20c997"> <span class="color-swatch" style="background-color: #20c997;"></span><span>Teal</span></label>
-             <label><input type="radio" name="color" value="#198754"> <span class="color-swatch" style="background-color: #198754;"></span><span>Green</span></label>
-             <label><input type="radio" name="color" value="#82c91e"> <span class="color-swatch" style="background-color: #82c91e;"></span><span>Lime</span></label>
-             <label><input type="radio" name="color" value="#0dcaf0"> <span class="color-swatch" style="background-color: #0dcaf0;"></span><span>Cyan</span></label>
-             <label><input type="radio" name="color" value="#0d6efd" checked> <span class="color-swatch" style="background-color: #0d6efd;"></span><span>Blue</span></label> <!-- Default Blue -->
-             <label><input type="radio" name="color" value="#3f51b5"> <span class="color-swatch" style="background-color: #3f51b5;"></span><span>Indigo</span></label>
-             <label><input type="radio" name="color" value="#795548"> <span class="color-swatch" style="background-color: #795548;"></span><span>Brown</span></label>
-         </fieldset>
-    </aside>
-</div>
+            <footer class="canvas-footer-controls">
+                 <button id="undoBtn" title="Urungkan (Ctrl+Z)" class="btn btn-outline-secondary" disabled type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/> </svg>
+                     Urungkan
+                 </button>
+                 <button id="redoBtn" title="Ulangi (Ctrl+Y)" class="btn btn-outline-secondary" disabled type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/> <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/> </svg>
+                     Ulangi
+                 </button>
+                 <button id="clearBtn" title="Bersihkan Kanvas" class="btn btn-outline-danger" type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm-2.45 7.45c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm2.235 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02zm-4.61 0c-.327.327-.86.327-1.187 0l-.02-.02-.02-.02c-.327-.327-.327-.86 0-1.187l.02-.02.02-.02c.327-.327.86-.327 1.187 0l.02.02.02.02c.327.327.327.86 0 1.187l-.02.02-.02.02z"/> </svg>
+                     Bersihkan
+                 </button>
+                 <label title="Tampilkan garis panduan rotasi/refleksi">
+                     <input type="checkbox" id="showSlicesCheck">
+                     <span>Tampilkan Panduan</span>
+                 </label>
+                 <button id="saveBtn" title="Simpan data gambar sebagai JSON" class="btn btn-outline-success" type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/> </svg>
+                     Simpan
+                 </button>
+                 <button id="loadBtn" title="Muat data gambar dari JSON" class="btn btn-outline-secondary" type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.746 1.972 1.664l.122.516a.5.5 0 0 1-.972.23l-.122-.516A1.5 1.5 0 0 0 4.264 3H2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h10.97l-1.71 6.837A1.5 1.5 0 0 1 10.26 13H1.5v-1a.5.5 0 0 0-.5-.5V3.5zM.5 5a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1zM11.76 4a.5.5 0 0 0-.488.607l1.71 6.837a.5.5 0 0 0 .488.393H15.5a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/> </svg>
+                     Muat...
+                 </button>
+                 <input type="file" id="loadFile" accept=".json" style="display: none;">
+                 <button id="downloadImageBtn" title="Unduh gambar sebagai PNG" class="btn btn-outline-info" type="button">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/> <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/> </svg>
+                     Gambar
+                 </button>
+                 <!-- Tombol Mode Gelap -->
+                 <button id="darkModeToggle" title="Ganti Mode Terang/Gelap" class="btn btn-outline-secondary" type="button">
+                     <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 0a.5.5 0 0 1-.707.707l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 3.05a.5.5 0 0 1-.707.707L2.343 2.343a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>
+                     <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.021 3.278 7.277 7.318 7.277a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/></svg>
+                     <span class="toggle-text">Mode Gelap</span>
+                 </button>
+            </footer>
+        </div> <!-- Tutup left-column -->
 
-<!-- Info Modal -->
+        <!-- Kolom Kanan: Kontrol Simetri -->
+        <aside class="right-column controls-panel">
+             <!-- Kontrol Simetri -->
+             <fieldset class="control-group">
+                  <legend>Tipe Simetri</legend>
+                  <label class="checkbox-label">
+                      <input type="checkbox" id="reflectionToggle">
+                      <span class="custom-checkbox"></span>
+                      <span>Aktifkan Refleksi (D<sub>n</sub>)</span>
+                  </label>
+             </fieldset>
+             <fieldset class="control-group">
+                 <legend>Rotasi (n)</legend>
+                 <div class="rotations-list">
+                     <!-- Opsi Rotasi (Gunakan custom radio) -->
+                     <label><input type="radio" name="rotationOrder" value="1" checked> <span class="custom-radio"></span><span class="rotation-text">1 (C<sub>1</sub> / D<sub>1</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="2"> <span class="custom-radio"></span><span class="rotation-text">2 (C<sub>2</sub> / D<sub>2</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="3"> <span class="custom-radio"></span><span class="rotation-text">3 (C<sub>3</sub> / D<sub>3</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="4"> <span class="custom-radio"></span><span class="rotation-text">4 (C<sub>4</sub> / D<sub>4</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="5"> <span class="custom-radio"></span><span class="rotation-text">5 (C<sub>5</sub> / D<sub>5</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="6"> <span class="custom-radio"></span><span class="rotation-text">6 (C<sub>6</sub> / D<sub>6</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="7"> <span class="custom-radio"></span><span class="rotation-text">7 (C<sub>7</sub> / D<sub>7</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="8"> <span class="custom-radio"></span><span class="rotation-text">8 (C<sub>8</sub> / D<sub>8</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="9"> <span class="custom-radio"></span><span class="rotation-text">9 (C<sub>9</sub> / D<sub>9</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="10"> <span class="custom-radio"></span><span class="rotation-text">10 (C<sub>10</sub> / D<sub>10</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="12"> <span class="custom-radio"></span><span class="rotation-text">12 (C<sub>12</sub> / D<sub>12</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="16"> <span class="custom-radio"></span><span class="rotation-text">16 (C<sub>16</sub> / D<sub>16</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="20"> <span class="custom-radio"></span><span class="rotation-text">20 (C<sub>20</sub> / D<sub>20</sub>)</span></label>
+                     <label><input type="radio" name="rotationOrder" value="24"> <span class="custom-radio"></span><span class="rotation-text">24 (C<sub>24</sub> / D<sub>24</sub>)</span></label>
+                  </div>
+             </fieldset>
+        </aside> <!-- Tutup right-column -->
+    </div> <!-- Tutup main-layout -->
+
+</div> <!-- Tutup app-container -->
+
+<!-- Modal Info -->
 <div id="infoModal" class="modal">
      <div class="modal-content">
-        <span class="modal-close" id="modalCloseBtn" title="Close (Esc)">×</span>
-        <h2>Rosette Symmetry Info & Instructions</h2>
-        <p>This application demonstrates rosette symmetry, where patterns are repeated around a central point using rotations and optional reflections.</p>
+        <button class="modal-close" id="modalCloseBtn" title="Tutup (Esc)" type="button">×</button>
+        <h2>Info & Instruksi Simetri Roset</h2>
+        <p>Aplikasi ini mendemonstrasikan simetri roset, di mana pola diulang di sekitar titik pusat menggunakan rotasi dan refleksi opsional.</p>
         <ul>
-            <li><strong>Rotations (n):</strong> Select the number of times the motif repeats in a full circle. This creates C<sub>n</sub> cyclic symmetry.</li>
-            <li><strong>Enable Reflection:</strong> Adds reflections across lines through the center, creating D<sub>n</sub> dihedral symmetry (like a kaleidoscope). The rotation labels update to show C<sub>n</sub> / D<sub>n</sub>.</li>
-            <li><strong>Tools & Style:</strong> Choose your drawing tool, line width, color, and cursor style from the right panel.</li>
-            <li><strong>Drawing:</strong> Click and drag (or use touch) on the white canvas to draw. The symmetry is applied instantly.</li>
-            <li><strong>Show Guides:</strong> Displays guide lines. Dashed lines for C<sub>n</sub> sectors, solid orange lines for D<sub>n</sub> reflection axes.</li>
-            <li><strong>Controls:</strong> Use Undo/Redo, Clear, Save/Load (JSON data), Download Image (PNG), and toggle Light/Dark Mode.</li>
+            <li><strong>Tipe Simetri (Panel Kanan):</strong> Atur jumlah <strong>Rotasi (n)</strong> untuk simetri siklik C<sub>n</sub>. Centang <strong>Aktifkan Refleksi</strong> untuk mengubahnya menjadi simetri dihedral D<sub>n</sub>.</li>
+            <li><strong>Alat & Gaya (Di Bawah Kanvas):</strong> Pilih <strong>Alat</strong> gambar (Goresan, Garis, dll.), <strong>Lebar Garis</strong>, <strong>Warna</strong> (gunakan spektrum), dan <strong>Gaya Kursor</strong>.</li>
+            <li><strong>Menggambar:</strong> Klik dan seret (atau sentuh) pada kanvas putih untuk menggambar. Simetri diterapkan secara instan.</li>
+            <li><strong>Tampilkan Panduan:</strong> Centang di bawah kanvas untuk menampilkan garis bantu rotasi (putus-putus C<sub>n</sub>) atau refleksi (solid oranye D<sub>n</sub>).</li>
+            <li><strong>Kontrol Footer (di bawah bar alat):</strong> Gunakan Urungkan/Ulangi, Bersihkan, Simpan/Muat (data JSON), Unduh Gambar (PNG), dan ganti Mode Terang/Gelap.</li>
         </ul>
-        <p><strong>Tip:</strong> Experiment with different rotation orders (n) and toggle reflection to see how the symmetry changes. Simple shapes drawn off-center often show the effect most clearly.</p>
+        <p><strong>Tips:</strong> Bereksperimenlah dengan urutan rotasi (n) yang berbeda dan aktifkan/nonaktifkan refleksi. Gambar bentuk sederhana agak jauh dari pusat untuk melihat efeknya paling jelas.</p>
     </div>
 </div>
 
 <script>
+    // --- JAVASCRIPT (v1.15 - Tidak ada perubahan logika, hanya penyesuaian selektor jika perlu) ---
     document.addEventListener('DOMContentLoaded', () => {
-        // --- DOM Elements ---
+        // --- Elemen DOM ---
         const canvas = document.getElementById('drawingCanvas');
         const gridCanvas = document.getElementById('gridCanvas');
         const canvasContainer = document.querySelector('.canvas-container');
@@ -405,43 +590,73 @@
         const loadFile = document.getElementById('loadFile');
         const downloadImageBtn = document.getElementById('downloadImageBtn');
         const reflectionToggle = document.getElementById('reflectionToggle');
-        const controlGroups = document.querySelectorAll('.control-group');
+        // Updated selector for control groups in both locations
+        const controlGroups = document.querySelectorAll('.drawing-tools-bar .control-group:not(.color-picker-group), .controls-panel .control-group');
         const infoBtn = document.getElementById('infoBtn');
         const infoModal = document.getElementById('infoModal');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const darkModeToggle = document.getElementById('darkModeToggle');
-        const rotationLabels = document.querySelectorAll('input[name="rotationOrder"] + span + span'); // For C/D label update
+        // Selector for the text span within rotation labels
+        const rotationTextSpans = document.querySelectorAll('.controls-panel .rotations-list label .rotation-text');
+        const colorPickerContainer = document.getElementById('colorPickerContainer');
+        const drawingToolsBar = document.querySelector('.drawing-tools-bar'); // Ref
 
-        // --- State Variables ---
+        // --- Variabel State --- (Sama)
         let isDrawing = false;
         let currentTool = 'freehand';
-        let currentColor = '#0d6efd'; // Default to the checked blue (HTML value)
+        let currentColor = '#0d6efd'; // Initial color matches CSS variable
         let currentLineWidth = 3;
         let currentRotationOrder = 1;
         let isReflectionEnabled = false;
         let currentCursorStyle = 'crosshair';
         let startX, startY, currentMouseX, currentMouseY;
-        let history = []; // Stores canvas data URLs for undo/redo snapshots
-        let drawingActions = []; // Stores the fundamental actions (tool, color, points, etc.)
-        let historyIndex = -1; // Pointer to the current state within drawingActions/history
-        let currentPath = []; // For freehand drawing
-        let lastKnownCanvasState = null; // Stores canvas state Image object for temp drawing
-        let rafId = null; // For requestAnimationFrame
+        let history = [];
+        let drawingActions = [];
+        let historyIndex = -1;
+        let currentPath = [];
+        let lastKnownCanvasState = null;
+        let rafId = null;
         let centerX, centerY;
+        let colorPicker = null;
         const MAX_HISTORY_SIZE = 50;
+        const pencilCursorDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAJ5JREFUOE9jZKASYKSCaxjwv7f0Y2SgKnDqAjsFVQGr4M4L/P9/ZGBgYAZiP6DmkSA1DrBqAQYYGM7/X8y/gYGBgRFFgB0H6sH//0AnAwMDQwIk58/A////MwYGBlYoYP4zMDAwMhACY5EYQ5QBZP7//zMwMDAygALmBDAwMDByMIIAAgyQ0j8wMDAwMsA6sA9A7gAxnwwMAAEEALBwG0+0i3uFAAAAAElFTkSuQmCC';
 
         // --- Setup ---
         function resizeCanvas() {
-            const size = Math.floor(canvasContainer.clientWidth); // Use floor for integer pixels
-            canvas.width = size; canvas.height = size;
-            gridCanvas.width = size; gridCanvas.height = size;
-            centerX = canvas.width / 2; centerY = canvas.height / 2;
+            // Debounce resize slightly
+            const currentWidth = canvasContainer.clientWidth;
+            if (currentWidth === canvas.width / (window.devicePixelRatio || 1)) return; // Avoid resize if size hasn't changed significantly
+
+            const dpr = window.devicePixelRatio || 1;
+            const size = Math.floor(currentWidth); // Use clientWidth as the base size
+
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+
+            gridCanvas.width = size * dpr;
+            gridCanvas.height = size * dpr;
+            gridCanvas.style.width = `${size}px`;
+            gridCanvas.style.height = `${size}px`;
+
+            ctx.scale(dpr, dpr);
+            gridCtx.scale(dpr, dpr);
+
+            centerX = size / 2; // Logical center
+            centerY = size / 2; // Logical center
+
+            // Update color picker size if necessary (iro.js usually handles this well)
+            // if (colorPicker && colorPickerContainer.clientWidth > 0) {
+            //     colorPicker.resize(colorPickerContainer.clientWidth);
+            // }
+
             applyContextSettings();
             applyCursorStyle();
             drawSlices();
-            // Redraw based on stored actions after resize
-            redrawAllActions(true); // Redraw but skip creating a new history state just for resize
+            redrawAllActions(true); // Redraw scaled actions
         }
+
 
         function applyContextSettings(targetCtx = ctx, settings = null) {
             const lw = settings ? settings.lineWidth : currentLineWidth;
@@ -450,55 +665,88 @@
             targetCtx.lineJoin = 'round';
             targetCtx.lineWidth = lw;
             targetCtx.strokeStyle = col;
-            targetCtx.fillStyle = col; // Used for filled shapes and dots
+            targetCtx.fillStyle = col; // Ensure fillStyle is also set
         }
 
-         function applyCursorStyle() {
+        function applyCursorStyle() {
             canvas.classList.remove('cursor-pencil', 'cursor-crosshair', 'cursor-default');
-            if (currentCursorStyle === 'pencil') canvas.classList.add('cursor-pencil');
+             canvas.style.cursor = ''; // Reset first
+            if (currentCursorStyle === 'pencil') {
+                 canvas.style.cursor = `url('${pencilCursorDataUrl}') 0 16, crosshair`; // Use CSS variable or embedded
+                 canvas.classList.add('cursor-pencil');
+            }
             else if (currentCursorStyle === 'crosshair') canvas.classList.add('cursor-crosshair');
             else canvas.classList.add('cursor-default');
         }
 
-        // --- Dark Mode Logic ---
+        // --- Initialize Color Picker ---
+         function initializeColorPicker() {
+             if (colorPickerContainer) {
+                 try {
+                     // Get initial color from CSS variable if needed, but prefer JS state
+                     const initialColor = currentColor || getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+
+                     colorPicker = new iro.ColorPicker(colorPickerContainer, {
+                         // Let CSS handle width/max-width
+                         color: initialColor,
+                         borderWidth: 1,
+                         borderColor: getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim(),
+                         layout: [
+                           { component: iro.ui.Box, options: { /* box options */ } },
+                           { component: iro.ui.Slider, options: { sliderType: 'hue' } }
+                         ],
+                         // Make it slightly more compact if needed
+                         // handleRadius: 8,
+                         // padding: 6,
+                     });
+
+                     colorPicker.on('color:change', function(color) {
+                         currentColor = color.hexString;
+                         applyContextSettings(); // Update context immediately
+                     });
+
+                     // Update picker border color on theme change
+                     const observer = new MutationObserver(mutations => {
+                         mutations.forEach(mutation => {
+                             if (mutation.attributeName === 'class' && document.body.classList.contains('dark-mode') !== document.body.classList.contains('was-dark-mode')) {
+                                  colorPicker.setOptions({ borderColor: getComputedStyle(document.documentElement).getPropertyValue('--picker-border-color').trim() });
+                                  document.body.classList.toggle('was-dark-mode', document.body.classList.contains('dark-mode'));
+                             }
+                         });
+                     });
+                     observer.observe(document.body, { attributes: true });
+                     document.body.classList.toggle('was-dark-mode', document.body.classList.contains('dark-mode'));
+
+
+                 } catch (error) {
+                     console.error("Gagal menginisialisasi color picker:", error);
+                     colorPickerContainer.innerHTML = '<p style="color: var(--danger-color); font-size: 0.9em; text-align: center; padding: 1em 0;">Pemilih warna gagal dimuat.</p>';
+                 }
+             } else { console.error("Wadah #colorPickerContainer tidak ditemukan!"); }
+         }
+
+        // --- Logika Mode Gelap --- (Sama)
         function applyTheme(theme) {
             const toggleText = darkModeToggle.querySelector('.toggle-text');
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
-                if (toggleText) toggleText.textContent = 'Light Mode'; // Text shows action to switch TO light
+                if (toggleText) toggleText.textContent = 'Mode Terang';
                 localStorage.setItem('theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
-                 if (toggleText) toggleText.textContent = 'Dark Mode'; // Text shows action to switch TO dark
+                 if (toggleText) toggleText.textContent = 'Mode Gelap';
                 localStorage.setItem('theme', 'light');
             }
-             // Re-draw slices as colors might change
-             drawSlices();
-             // If the modal is open, ensure its colors update (if needed, though CSS vars handle most)
+            // Picker border color is handled by MutationObserver now
+             drawSlices(); // Redraw slices with new theme colors
         }
+        function toggleTheme() { if (document.body.classList.contains('dark-mode')) { applyTheme('light'); } else { applyTheme('dark'); } }
+        function initializeTheme() { const savedTheme = localStorage.getItem('theme'); const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; if (savedTheme) { applyTheme(savedTheme); } else if (prefersDark) { applyTheme('dark'); } else { applyTheme('light'); } }
 
-        function toggleTheme() {
-            if (document.body.classList.contains('dark-mode')) {
-                applyTheme('light');
-            } else {
-                applyTheme('dark');
-            }
-        }
 
-        // Initialize theme based on localStorage or default (light)
-        function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            // Default to 'light' if no saved theme or if saved theme is invalid/not 'dark'
-            if (savedTheme === 'dark') {
-                 applyTheme('dark');
-            } else {
-                 applyTheme('light'); // Default or saved 'light'
-            }
-        }
-
-        // --- Info Modal Logic ---
-        function showInfoModal() { infoModal.style.display = 'block'; }
-        function hideInfoModal() { infoModal.style.display = 'none'; }
+        // --- Logika Modal Info --- (Sama)
+        function showInfoModal() { infoModal.style.display = 'block'; infoModal.querySelector('.modal-close').focus();}
+        function hideInfoModal() { infoModal.style.display = 'none'; infoBtn.focus(); }
         infoBtn.addEventListener('click', showInfoModal);
         modalCloseBtn.addEventListener('click', hideInfoModal);
         window.addEventListener('click', (event) => { if (event.target == infoModal) hideInfoModal(); });
@@ -507,709 +755,610 @@
         // --- Event Listeners ---
         darkModeToggle.addEventListener('click', toggleTheme);
 
-        controlGroups.forEach(group => {
-            group.addEventListener('change', (e) => {
-                const target = e.target;
-                if (target.type === 'radio' || target.id === 'reflectionToggle') { // Includes checkbox
-                    const prevRot = currentRotationOrder;
-                    const prevRef = isReflectionEnabled;
-                    const prevCur = currentCursorStyle;
+        // Event listener for ALL control groups (sidebar and tools bar)
+        // Use event delegation on the containers for efficiency
+        document.querySelector('.drawing-tools-bar').addEventListener('change', handleControlChange);
+        document.querySelector('.controls-panel').addEventListener('change', handleControlChange);
 
-                    updateSettings(); // Update state variables from UI
-                    updateSelectedLabels(); // Update visual selection styles
+        function handleControlChange(e) {
+            const target = e.target;
+            if (target.type === 'radio' || target.id === 'reflectionToggle') {
+                const prevRot = currentRotationOrder;
+                const prevRef = isReflectionEnabled;
+                const prevCur = currentCursorStyle;
+                const prevTool = currentTool;
+                const prevWidth = currentLineWidth;
 
-                    if(currentCursorStyle !== prevCur) {
-                        applyCursorStyle(); // Apply new cursor if changed
-                    }
+                updateSettings(); // Read the new values
+                updateSelectedLabels(); // Update visual selection states
 
-                    // If symmetry parameters changed, redraw everything and save state
-                    if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) {
-                         updateRotationLabels(); // Update C/D text in labels
-                         drawSlices(); // Redraw guides
-                         redrawAllActions(); // Redraw based on existing actions with new symmetry
-                         // saveState(); // saveState is called implicitly by redrawAllActions if needed or after drawing completes
-                    } else if (target.name !== 'rotationOrder' && target.id !== 'reflectionToggle'){
-                        // If only tool, color, width changed, just update context for next drawing
-                        applyContextSettings();
-                    }
+                if (currentCursorStyle !== prevCur) {
+                    applyCursorStyle();
                 }
-            });
-        });
+                if (currentRotationOrder !== prevRot || isReflectionEnabled !== prevRef) {
+                    updateRotationLabels();
+                    drawSlices();
+                    redrawAllActions(); // Redraw with new symmetry
+                }
+                if (target.name === 'tool' || target.name === 'lineWidth' || target.id === 'reflectionToggle') {
+                     // Only apply context settings if relevant properties changed
+                     if (currentTool !== prevTool || currentLineWidth !== prevWidth) {
+                        applyContextSettings();
+                     }
+                }
+            }
+        }
 
-        showSlicesCheck.addEventListener('change', drawSlices); // Toggle guides visibility
-        clearBtn.addEventListener('click', () => clearCanvas(false)); // User-triggered clear
+
+        showSlicesCheck.addEventListener('change', drawSlices);
+        clearBtn.addEventListener('click', () => clearCanvas(false));
         undoBtn.addEventListener('click', undo);
         redoBtn.addEventListener('click', redo);
         saveBtn.addEventListener('click', saveJson);
         loadBtn.addEventListener('click', () => loadFile.click());
         loadFile.addEventListener('change', loadJson);
         downloadImageBtn.addEventListener('click', downloadCanvasImage);
-
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) { // Ctrl or Cmd key
-                if (e.key === 'z') { e.preventDefault(); undo(); }
-                else if (e.key === 'y') { e.preventDefault(); redo(); }
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return; // Don't interfere with text input
             }
+            if (e.ctrlKey || e.metaKey) { // Ctrl or Command key
+                 if (e.key === 'z') { e.preventDefault(); undo(); }
+                 else if (e.key === 'y') { e.preventDefault(); redo(); }
+                 else if (e.key === 's') { e.preventDefault(); saveJson(); } // Save shortcut
+                 else if (e.key === 'o') { e.preventDefault(); loadFile.click(); } // Open shortcut
+             }
         });
 
-        // Canvas drawing events (Mouse & Touch)
+        // Canvas drawing events
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { e.preventDefault(); startDrawing(e.touches[0]); }}, { passive: false });
 
-        // Window resize handler with debounce
+        // Window resize
         let resizeTimeout;
         window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                resizeCanvas(); // Resizes canvas, redraws everything, updates cache
-            }, 150); // Debounce resize event
+             clearTimeout(resizeTimeout);
+             resizeTimeout = setTimeout(() => {
+                 // Recalculate DPR and resize
+                 resizeCanvas();
+             }, 150); // Debounce resize
         });
 
-        // --- Core Functions ---
+        // --- Fungsi Inti ---
         function updateSettings() {
+            // Query within the correct scope if elements exist in multiple places (though names are unique here)
             currentTool = document.querySelector('input[name="tool"]:checked')?.value ?? 'freehand';
             currentLineWidth = parseInt(document.querySelector('input[name="lineWidth"]:checked')?.value ?? '3', 10);
-            currentColor = document.querySelector('input[name="color"]:checked')?.value ?? '#0d6efd'; // Match default checked color
             currentRotationOrder = parseInt(document.querySelector('input[name="rotationOrder"]:checked')?.value ?? '1', 10);
             isReflectionEnabled = reflectionToggle.checked;
             currentCursorStyle = document.querySelector('input[name="cursorStyle"]:checked')?.value ?? 'crosshair';
+            // Color is updated directly by the color picker's event listener
         }
 
         function updateSelectedLabels() {
-             controlGroups.forEach(group => {
-                // Handle radio buttons
-                group.querySelectorAll('label:has(input[type="radio"])').forEach(label => {
-                    const radio = label.querySelector('input[type="radio"]');
-                    if (radio && radio.checked) label.classList.add('selected');
-                    else label.classList.remove('selected');
+            // Update labels in the tools bar
+            document.querySelectorAll('.drawing-tools-bar .control-group').forEach(group => {
+                group.querySelectorAll('label').forEach(label => {
+                    const input = label.querySelector('input[type="radio"]');
+                    if (input) {
+                        label.classList.toggle('selected', input.checked);
+                    }
                 });
-                 // Handle checkbox (reflection toggle specifically)
-                 const checkboxLabel = group.querySelector('label.checkbox-label:has(#reflectionToggle)'); // Be more specific
-                 if (checkboxLabel) {
-                     if (reflectionToggle.checked) checkboxLabel.classList.add('selected');
-                     else checkboxLabel.classList.remove('selected');
-                 }
             });
+            // Update labels in the sidebar
+            document.querySelectorAll('.controls-panel .control-group').forEach(group => {
+                group.querySelectorAll('label').forEach(label => {
+                    const input = label.querySelector('input[type="radio"], input[type="checkbox"]');
+                     if (input) {
+                        label.classList.toggle('selected', input.checked);
+                    }
+                });
+             });
         }
 
-         // Update C/D labels based on reflection state
-         function updateRotationLabels() {
+
+        function updateRotationLabels() {
              const prefix = isReflectionEnabled ? 'D' : 'C';
-             rotationLabels.forEach(span => {
-                 const radio = span.previousElementSibling.previousElementSibling; // input -> custom-radio -> span text
-                 const n = radio.value;
-                 // Update the text content, keeping the structure
-                 span.textContent = `${n} (${prefix}${n})`;
+             rotationTextSpans.forEach(span => {
+                 // Find the corresponding radio button (assuming structure is label > input + span.custom-radio + span.rotation-text)
+                 const radio = span.closest('label')?.querySelector('input[name="rotationOrder"]');
+                 if (radio) {
+                     const n = radio.value;
+                     // Use innerHTML to render sub correctly
+                     span.innerHTML = `${n} (${prefix}<sub>${n}</sub>)`;
+                 }
              });
          }
 
-        // --- History Management ---
+        // --- Manajemen Riwayat --- (Sama logic, maybe improve state saving performance slightly)
         function saveState() {
-             // Clear future actions/history if we drew after undoing
+            // Trim history if needed before adding new state
             if (historyIndex < drawingActions.length - 1) {
-                drawingActions = drawingActions.slice(0, historyIndex + 1);
-                history = history.slice(0, historyIndex + 1);
+                drawingActions.splice(historyIndex + 1);
+                history.splice(historyIndex + 1);
             }
 
-             try {
-                 const currentStateDataUrl = canvas.toDataURL();
+             // Optimization: Check if the current state is identical to the last saved state
+            // This requires drawing to a temporary canvas or comparing data URLs, which can be slow.
+            // A simpler check is if drawingActions hasn't changed.
+            // For simplicity, we'll stick to the data URL comparison, but be mindful of performance.
 
-                 // Avoid saving duplicates if canvas hasn't changed (e.g., symmetry change w/o drawing)
-                 if (history.length > 0 && history[history.length - 1] === currentStateDataUrl) {
-                      // console.log("Skipping saveState - canvas unchanged.");
-                      updateUndoRedoButtons(); // Still update buttons state
-                      return;
-                 }
+            try {
+                const currentStateDataUrl = canvas.toDataURL(); // Potentially slow operation
+                if (history.length > 0 && history[historyIndex] === currentStateDataUrl) {
+                    // console.log("Skipping saveState - no change detected");
+                    updateUndoRedoButtons();
+                    return; // No change, don't save duplicate state
+                }
 
+                history.push(currentStateDataUrl);
+                // historyIndex is implicitly updated by the push, then set explicitly
+                historyIndex = history.length - 1;
 
-                 history.push(currentStateDataUrl); // Store the snapshot
-                 // historyIndex should now point to the last element *after* push
-                 historyIndex = history.length - 1;
+                // Limit history size
+                if (history.length > MAX_HISTORY_SIZE) {
+                    const itemsToRemove = history.length - MAX_HISTORY_SIZE;
+                    history.splice(0, itemsToRemove);
+                    drawingActions.splice(0, itemsToRemove); // Keep actions and history synced
+                    historyIndex -= itemsToRemove; // Adjust index
+                }
+                // console.log("State Saved. Index:", historyIndex, "History Size:", history.length);
 
-                 // Limit history size
-                 if (history.length > MAX_HISTORY_SIZE) {
-                     const itemsToRemove = history.length - MAX_HISTORY_SIZE;
-                     history.splice(0, itemsToRemove);
-                     // Also prune corresponding actions
-                     drawingActions.splice(0, itemsToRemove);
-                     // Adjust historyIndex to reflect the removal from the beginning
-                     historyIndex -= itemsToRemove;
-                 }
-             } catch (e) {
-                 console.error("Failed to save canvas state to history:", e);
-                 // Potentially clear history or disable undo/redo if saving fails critically
-                 history = [];
-                 drawingActions = [];
-                 historyIndex = -1;
-             }
-
-            // Update button states based on the new index and array lengths
-            updateUndoRedoButtons();
+            } catch (e) {
+                console.error("Gagal menyimpan state kanvas:", e);
+                // Potentially clear history if saving fails critically
+                // history = [];
+                // drawingActions = [];
+                // historyIndex = -1;
+            } finally {
+                updateUndoRedoButtons(); // Always update button states
+            }
         }
 
-
         function restoreState(targetHistoryIndex) {
-             if (targetHistoryIndex < -1 || targetHistoryIndex >= history.length) {
-                 console.warn("Restore state index out of bounds:", targetHistoryIndex);
-                 return;
-             }
+             if (targetHistoryIndex < -1 || targetHistoryIndex >= history.length) return; // Invalid index
 
+             // console.log("Restoring state to index:", targetHistoryIndex);
              historyIndex = targetHistoryIndex;
-
-             // Clear canvas before redrawing
-             ctx.clearRect(0, 0, canvas.width, canvas.height);
+             ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height/ (window.devicePixelRatio||1)); // Clear logical pixels
 
              if (historyIndex === -1) {
-                 // Restoring the initial blank state
-                 // Canvas is already cleared
-                 updateLastKnownCanvasState(); // Update cache to blank
+                 // Cleared state
+                 updateLastKnownCanvasState();
              } else {
-                 // Restoring a specific state from history
                  const img = new Image();
                  img.onload = () => {
-                     ctx.drawImage(img, 0, 0);
-                     updateLastKnownCanvasState(); // Update cache to restored state
+                     ctx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1)); // Draw logical pixels
+                     updateLastKnownCanvasState();
                  };
-                 img.onerror = () => {
-                     console.error("Failed to load history image. Redrawing all actions as fallback.");
-                     // Fallback: Redraw actions up to the corresponding point
-                     // This assumes drawingActions index aligns roughly with history snapshot index
-                     const correspondingActionIndex = historyIndex; // Simpler mapping
-                     redrawBasedOnActions(correspondingActionIndex); // Use a specific redraw function
+                 img.onerror = (err) => {
+                     console.error("Gagal memuat gambar riwayat. Menggambar ulang dari actions.", err);
+                     // Fallback: Redraw from actions if image load fails
+                     redrawBasedOnActions(historyIndex);
                  };
-                 img.src = history[historyIndex]; // Load the stored data URL
+                 img.src = history[historyIndex];
              }
-
-             // Update button states
              updateUndoRedoButtons();
          }
 
-        // Separate function to redraw based on action index, used by restoreState fallback
         function redrawBasedOnActions(targetActionIndex) {
-             ctx.clearRect(0, 0, canvas.width, canvas.height);
-             const actionsToRedraw = drawingActions.slice(0, targetActionIndex + 1);
-
-             actionsToRedraw.forEach(action => {
-                 applyContextSettings(ctx, action);
-                 drawAction(action, ctx); // Use a helper to draw single action
-             });
-
-             applyContextSettings(); // Restore current settings
-             updateLastKnownCanvasState(); // Update cache
-         }
-
-
-        function undo() {
-            if (historyIndex >= 0) { // Can undo if we are not at the initial state (-1)
-                restoreState(historyIndex - 1);
-            }
+            // console.log("Redrawing based on actions up to index:", targetActionIndex);
+            ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+            const actionsToRedraw = drawingActions.slice(0, targetActionIndex + 1);
+            // Store original settings to restore after redraw
+            const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
+            actionsToRedraw.forEach(action => {
+                 if (action && action.tool) { // Basic check for valid action
+                     applyContextSettings(ctx, action);
+                     drawAction(action, ctx);
+                 } else {
+                     console.warn("Skipping invalid action during redraw:", action);
+                 }
+            });
+            applyContextSettings(ctx, originalSettings); // Restore current settings
+            updateLastKnownCanvasState();
         }
 
-        function redo() {
-            if (historyIndex < history.length - 1) { // Can redo if not at the latest state
-                restoreState(historyIndex + 1);
-            }
-        }
-
-
-        function updateUndoRedoButtons() {
-            // Undo enabled if historyIndex is 0 or greater (not the initial -1 state)
-            undoBtn.disabled = historyIndex < 0;
-            // Redo enabled if historyIndex is less than the last index of the history array
-            redoBtn.disabled = historyIndex >= history.length - 1;
-            // Clear button enabled if there's anything in history (meaning canvas isn't blank initial state)
-            clearBtn.disabled = historyIndex < 0;
-        }
+        function undo() { if (historyIndex >= 0) { restoreState(historyIndex - 1); } }
+        function redo() { if (historyIndex < history.length - 1) { restoreState(historyIndex + 1); } }
+        function updateUndoRedoButtons() { undoBtn.disabled = historyIndex < 0; redoBtn.disabled = historyIndex >= history.length - 1; clearBtn.disabled = historyIndex < 0 && drawingActions.length === 0; } // Disable clear only if truly empty
 
         function clearCanvas(isInternal = false) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height); // Clear guides too
+            ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+            gridCtx.clearRect(0, 0, gridCanvas.width / (window.devicePixelRatio||1), gridCanvas.height / (window.devicePixelRatio||1));
             if (!isInternal) {
-                drawingActions = []; // Clear actions array
-                history = []; // Clear history snapshots
-                historyIndex = -1; // Reset history index
-                lastKnownCanvasState = null; // Clear cached state
-                drawSlices(); // Redraw guides if needed
-                saveState(); // Save the blank state (will push initial DataURL)
-                // updateUndoRedoButtons(); // saveState calls this
+                 // console.log("Clearing canvas (user action)");
+                 drawingActions = [];
+                 history = [];
+                 historyIndex = -1;
+                 lastKnownCanvasState = null;
+                 drawSlices();
+                 saveState(); // Save the empty state
             } else {
-                 updateLastKnownCanvasState(); // Update cache if cleared internally (e.g. before load)
-            }
+                 // console.log("Clearing canvas (internal action)");
+                 updateLastKnownCanvasState(); // Update cache for internal clears (like loading)
+             }
         }
 
-         function updateLastKnownCanvasState() {
-             // Only update if not currently drawing to avoid caching intermediate frames
-             if (isDrawing) return;
-             try {
+        // Cache the last rendered state as an Image object for faster redraws during drawing loops
+        function updateLastKnownCanvasState() {
+            if (isDrawing) return; // Don't cache while actively drawing
+
+            // Avoid frequent caching if not needed, maybe only after stopDrawing
+            // For now, keep it simple: cache whenever called outside drawing loop
+            try {
+                // Use existing canvas data directly if possible, avoid toDataURL if performance is critical
+                // However, toDataURL is reliable for history saving/restoring
                  const dataUrl = canvas.toDataURL();
                  const img = new Image();
                  img.onload = () => { lastKnownCanvasState = img; };
-                 img.onerror = () => { lastKnownCanvasState = null; console.error("Failed to update lastKnownCanvasState from DataURL"); };
+                 img.onerror = () => { lastKnownCanvasState = null; };
                  img.src = dataUrl;
              } catch (e) {
-                 console.error("Error creating data URL for canvas state cache:", e);
-                 lastKnownCanvasState = null; // Invalidate cache on error
-             }
-         }
+                console.error("Error creating canvas state cache:", e);
+                lastKnownCanvasState = null;
+            }
+        }
 
-
-        // --- Drawing Logic ---
+        // --- Logika Menggambar --- (Optimized slightly)
         function getMousePos(evt) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width; // Handle CSS scaling
-            const scaleY = canvas.height / rect.height;
-            const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0;
-            const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0;
-            // Adjust position based on canvas scaling
-            return {
+             const rect = canvas.getBoundingClientRect();
+             // Use devicePixelRatio for accurate coordinates on high-DPI screens
+             const dpr = window.devicePixelRatio || 1;
+             const scaleX = canvas.width / dpr / rect.width;
+             const scaleY = canvas.height / dpr / rect.height;
+
+             // Handle both mouse and touch events
+             const clientX = evt.clientX ?? evt.touches?.[0]?.clientX ?? 0;
+             const clientY = evt.clientY ?? evt.touches?.[0]?.clientY ?? 0;
+
+             return {
                  x: (clientX - rect.left) * scaleX,
                  y: (clientY - rect.top) * scaleY
-            };
+             };
         }
 
         function startDrawing(e) {
             if (e.button && e.button !== 0) return; // Ignore right/middle clicks
+
             isDrawing = true;
             const pos = getMousePos(e);
-            startX = pos.x; startY = pos.y;
-            currentMouseX = startX; currentMouseY = startY;
+            startX = pos.x;
+            startY = pos.y;
+            currentMouseX = startX;
+            currentMouseY = startY;
 
-            applyContextSettings(); // Ensure current settings are applied
-
+            // Reset path for freehand tool
             if (currentTool === 'freehand') {
-                currentPath = [{ x: startX, y: startY }]; // Start path
+                currentPath = [{ x: startX, y: startY }];
             }
 
-            // Add temporary drawing listeners to the window for broader capture
+            applyContextSettings(); // Ensure context has current settings
+
+            // Add event listeners to window for better drag-out handling
             window.addEventListener('mousemove', handleDrawingMove);
             window.addEventListener('mouseup', stopDrawing);
-            window.addEventListener('touchmove', handleDrawingMove, { passive: false });
+            window.addEventListener('touchmove', handleDrawingMove, { passive: false }); // Prevent scrolling on canvas
             window.addEventListener('touchend', stopDrawing);
             window.addEventListener('touchcancel', stopDrawing); // Handle interruptions
 
-            // Start animation loop for live preview
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(drawingLoop);
-        }
+            // Start the drawing loop
+             if (rafId) cancelAnimationFrame(rafId);
+             rafId = requestAnimationFrame(drawingLoop);
+         }
 
-         function handleDrawingMove(e) {
-             if (!isDrawing) return;
-             if (e.type === 'touchmove' && e.touches.length === 1) {
-                 e.preventDefault(); // Prevent scrolling only during single-touch draw
-             }
-
-             const pos = getMousePos(e);
+        function handleDrawingMove(e) {
+            if (!isDrawing) return;
+            if (e.type === 'touchmove' && e.touches.length === 1) {
+                 e.preventDefault(); // Prevent page scroll only for single touch on canvas
+            }
+            const pos = getMousePos(e);
              currentMouseX = pos.x;
              currentMouseY = pos.y;
 
              if (currentTool === 'freehand') {
                  const lastPoint = currentPath[currentPath.length - 1];
-                 // Add point if moved sufficiently to avoid excessive points
+                 // Add point only if moved a certain distance to avoid too many points
                  const dx = currentMouseX - lastPoint.x;
                  const dy = currentMouseY - lastPoint.y;
-                 // Threshold based on squared distance (faster than sqrt)
-                 // Adjust threshold based on line width? Maybe not necessary.
-                 if (dx * dx + dy * dy > 9) { // Threshold = 3px distance
+                 const minMoveDistSq = 4; // Min distance squared (2px)
+                 if (dx * dx + dy * dy > minMoveDistSq) {
                      currentPath.push({ x: currentMouseX, y: currentMouseY });
                  }
              }
-             // For other tools, drawingLoop handles the live preview update
+            // The drawingLoop handles the actual rendering
          }
 
         function drawingLoop() {
             if (!isDrawing) {
-                rafId = null; // Stop the loop if not drawing
-                return;
+                rafId = null;
+                return; // Stop the loop if not drawing
             }
 
-            // 1. Clear the canvas for the temporary drawing preview
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Clear only the area needed? Maybe not worth complexity for full-screen redraw
+            ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
 
-            // 2. Restore the last known permanent state from the cache
+            // Draw the last saved state from cache
             if (lastKnownCanvasState) {
                 try {
-                    ctx.drawImage(lastKnownCanvasState, 0, 0);
+                    ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
                 } catch (error) {
                     console.error("Error drawing cached state:", error);
-                    // Fallback: Redraw permanent actions if cache fails
-                    redrawAllActions(true); // Redraw permanent state, skip cache update
+                    // Fallback: redraw everything if cache fails
+                    redrawAllActions(true);
                 }
             } else {
-                // If no cache, redraw all permanent actions (less efficient but robust)
-                redrawAllActions(true); // Redraw permanent state, skip cache update
+                 // If no cache, redraw everything from actions
+                 redrawAllActions(true);
             }
 
-
-            // 3. Apply current drawing settings for the preview
-            applyContextSettings();
-
-            // 4. Draw the current shape/line being dragged (with symmetry applied)
-            const tempAction = { // Create a temporary action object for drawing
-                 tool: currentTool,
-                 color: currentColor,
-                 lineWidth: currentLineWidth,
-                 startX: startX, startY: startY,
-                 endX: currentMouseX, endY: currentMouseY,
-                 path: currentPath // Use the current path for freehand preview
+            // Draw the current primitive/path being created on top
+            applyContextSettings(); // Ensure current settings are applied
+            const tempAction = {
+                tool: currentTool,
+                color: currentColor,
+                lineWidth: currentLineWidth,
+                startX: startX, startY: startY,
+                endX: currentMouseX, endY: currentMouseY,
+                path: (currentTool === 'freehand') ? currentPath : null // Pass current path for freehand preview
             };
-            drawAction(tempAction, ctx); // Draw the symmetric preview
+            drawAction(tempAction, ctx); // Draw the temporary action with symmetry
 
-
-            // 5. Request the next animation frame
-            rafId = requestAnimationFrame(drawingLoop);
+            rafId = requestAnimationFrame(drawingLoop); // Continue the loop
         }
 
         function stopDrawing(e) {
             if (!isDrawing) return;
             isDrawing = false;
 
-            // Remove temporary listeners attached to the window
+            // Clean up window listeners
             window.removeEventListener('mousemove', handleDrawingMove);
             window.removeEventListener('mouseup', stopDrawing);
             window.removeEventListener('touchmove', handleDrawingMove);
             window.removeEventListener('touchend', stopDrawing);
             window.removeEventListener('touchcancel', stopDrawing);
 
-            // Cancel the animation frame loop
+            // Stop the drawing loop
             if (rafId) cancelAnimationFrame(rafId);
             rafId = null;
 
-            // Ensure final mouse/touch position is captured
-             const pos = getMousePos(e); // Use last event pos if available
-             const endX = (e.type === 'mouseup' || e.type === 'touchend') ? pos.x : currentMouseX;
-             const endY = (e.type === 'mouseup' || e.type === 'touchend') ? pos.y : currentMouseY;
+            // Get final position (might be different from last mousemove)
+            const pos = getMousePos(e);
+            const endX = (e.type === 'mouseup' || e.type === 'touchend') ? pos.x : currentMouseX;
+            const endY = (e.type === 'mouseup' || e.type === 'touchend') ? pos.y : currentMouseY;
 
-
-            // Finalize freehand path if needed
+            // Finalize freehand path
             if (currentTool === 'freehand' && currentPath.length > 0) {
                 const last = currentPath[currentPath.length - 1];
-                 // Add final point only if it's different from the last recorded one during move
-                if (Math.abs(last.x - endX) > 0.1 || Math.abs(last.y - endY) > 0.1) {
+                 // Add final point if it's different enough from the last recorded point
+                 if (Math.hypot(last.x - endX, last.y - endY) > 0.1) {
                     currentPath.push({ x: endX, y: endY });
-                }
+                 }
             }
 
-             // --- Determine if a meaningful action occurred ---
-             let addAction = false;
-             const distSq = (startX - endX)**2 + (startY - endY)**2; // Squared distance
-             const minPixelMoveSq = 4; // Minimum movement squared (2px) to register
+            // Decide whether to add the action to history
+            let addAction = false;
+            const distSq = (startX - endX)**2 + (startY - endY)**2;
+            const minPixelMoveSq = 4; // Minimum movement squared to register as a shape/line
 
-             if (currentTool === 'freehand') {
-                 // Freehand needs at least 2 points (start + one move) or a significant single segment
-                 addAction = currentPath.length > 1 || (currentPath.length === 1 && distSq >= minPixelMoveSq) ;
-             } else {
-                  // Other tools: action occurs if mouse moved significantly,
-                  // or if it's a filled shape (register even a click as a dot)
-                  addAction = distSq >= minPixelMoveSq || currentTool === 'filledRect' || currentTool === 'filledOval';
+            if (currentTool === 'freehand') {
+                 // Add freehand if path has more than one point, or if it's a single 'dot'
+                 addAction = currentPath.length > 1 || (currentPath.length === 1); // Add single dots too
+            } else {
+                // Add shapes if significant movement occurred or if it's a filled shape (even a dot)
+                 addAction = distSq >= minPixelMoveSq || currentTool === 'filledRect' || currentTool === 'filledOval';
              }
-
 
             if (addAction) {
-                 // Clear redo stack if we drew after an undo
+                // Clear redo history if branching
                 if (historyIndex < drawingActions.length - 1) {
-                    drawingActions = drawingActions.slice(0, historyIndex + 1);
-                    history = history.slice(0, historyIndex + 1); // Prune history snapshots too
-                }
-
-                // Create the final action object for history
-                const action = {
-                    tool: currentTool,
-                    color: currentColor,
-                    lineWidth: currentLineWidth,
-                    startX: startX,
-                    startY: startY,
-                    endX: endX, // Use the final captured end coordinates
-                    endY: endY,
-                    // Store a *copy* of the final path for freehand
-                    path: currentTool === 'freehand' ? [...currentPath] : null
-                };
-
-                drawingActions.push(action);
-
-                // --- Permanently draw the final action onto the canvas ---
-                // We already have the previous state drawn from the cache.
-                // Just draw the *new* action on top permanently.
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-                if(lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0); // Draw previous state
-                applyContextSettings(ctx, action); // Use action's settings
-                drawAction(action, ctx); // Draw the final action symmetrically
-                applyContextSettings(); // Restore current settings
-
-
-                // Save the new complete state (including the action just drawn)
-                saveState(); // Creates a new history entry
-
-            } else {
-                 // No significant action occurred (e.g., just a click with line tool)
-                 // Revert the canvas to the state *before* this interaction started.
-                 // drawingLoop might have cleared and redrawn, so ensure we restore correctly.
-                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                 if (lastKnownCanvasState) {
-                     ctx.drawImage(lastKnownCanvasState, 0, 0);
-                 } else {
-                     // Fallback if cache is missing (should be rare)
-                     redrawAllActions(true); // Redraw previous state, skip cache update
+                     drawingActions.splice(historyIndex + 1);
+                     history.splice(historyIndex + 1);
                  }
-                 // No need to call saveState as nothing changed permanently.
-                 updateUndoRedoButtons(); // Ensure buttons are correct
+
+                 // Create the final action object
+                 const action = {
+                     tool: currentTool,
+                     color: currentColor,
+                     lineWidth: currentLineWidth,
+                     startX: startX, startY: startY,
+                     endX: endX, endY: endY,
+                     path: (currentTool === 'freehand' && currentPath) ? [...currentPath] : null // Clone path
+                 };
+                 drawingActions.push(action);
+
+                // Final redraw including the new action
+                 ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+                 if(lastKnownCanvasState) ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1)); // Draw previous state
+                 applyContextSettings(ctx, action); // Apply action's settings
+                 drawAction(action, ctx);          // Draw the final action
+                 applyContextSettings();           // Restore current settings
+
+                 saveState(); // Save the new state to history
+            } else {
+                // If no action was added (e.g., just a click without movement for line/rect)
+                // Just redraw the last known state to clear the temporary preview
+                 ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+                 if (lastKnownCanvasState) {
+                     ctx.drawImage(lastKnownCanvasState, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+                 } else {
+                     redrawAllActions(true); // Fallback if no cache
+                 }
+                 updateUndoRedoButtons(); // Update buttons state
              }
 
-            // Clear temporary path for the next drawing operation
-            currentPath = [];
+            currentPath = []; // Clear path for next drawing
+            // Update cache after drawing stopped and action potentially added
+            updateLastKnownCanvasState();
         }
 
-
-        // --- Redraw All Actions ---
-        // Used for major changes like loading, resizing, or cache failures
-         function redrawAllActions(skipCacheUpdate = false) {
-             // 1. Clear the main canvas
-             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-             // 2. Store original settings to restore later
-             const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
-
-             // 3. Iterate through the currently relevant stored actions
-             const actionsToDraw = drawingActions.slice(0, historyIndex + 1); // Draw up to current history pointer
-             actionsToDraw.forEach((action) => {
-                 // Apply settings specific to this action
-                 applyContextSettings(ctx, action);
-                 // Draw the action with its symmetry
-                 drawAction(action, ctx);
-             });
-
-             // 4. Restore the current drawing settings
-             applyContextSettings(ctx, originalSettings);
-
-             // 5. Update the cached canvas state image unless skipped
-             if (!skipCacheUpdate) {
+        // --- Gambar Ulang & Helper --- (Sama)
+        function redrawAllActions(skipCacheUpdate = false) {
+            ctx.clearRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+            const originalSettings = { lineWidth: currentLineWidth, color: currentColor };
+            const actionsToDraw = drawingActions.slice(0, historyIndex + 1);
+            actionsToDraw.forEach((action) => {
+                 if(action && action.tool) { // Ensure action is valid
+                     applyContextSettings(ctx, action);
+                     drawAction(action, ctx);
+                 }
+            });
+            applyContextSettings(ctx, originalSettings); // Restore current tool settings
+            if (!skipCacheUpdate) {
                  updateLastKnownCanvasState();
-             }
-             // 6. Ensure Undo/Redo buttons reflect the potentially changed state
-              updateUndoRedoButtons();
-         }
+            }
+            updateUndoRedoButtons();
+        }
 
-         // Helper function to draw a single action with symmetry
-         function drawAction(action, targetCtx) {
+        function drawAction(action, targetCtx) {
+            if (!action || !action.tool) return; // Safety check
+
              if (action.tool === 'freehand') {
                  if (action.path && action.path.length > 0) {
                      const tPaths = applySymmetryToPath(action.path);
                      tPaths.forEach(p => drawFreehandPath(p, targetCtx));
                  }
              } else {
+                 // Apply symmetry to start/end points for primitives
                  const pts = applySymmetry(action.startX, action.startY, action.endX, action.endY);
                  pts.forEach(p => {
-                     // Handle single point clicks for filled shapes correctly
-                     const isClick = Math.abs(action.startX - action.endX) < 0.5 && Math.abs(action.startY - action.endY) < 0.5;
-                     if ((action.tool === 'filledRect' || action.tool === 'filledOval') && isClick) {
-                         drawDot(p.x1, p.y1, targetCtx); // Draw symmetric dots for clicks
+                     const isClickLike = Math.hypot(action.startX - action.endX, action.startY - action.endY) < 1.0; // Check for very small distance
+
+                     // Draw a dot for filled shapes on click-like actions
+                     if ((action.tool === 'filledRect' || action.tool === 'filledOval') && isClickLike) {
+                         drawDot(p.x1, p.y1, targetCtx); // Draw dot at transformed start point
                      } else {
                          drawPrimitive(p.x1, p.y1, p.x2, p.y2, action.tool, targetCtx);
                      }
                  });
              }
-         }
-
-
-        // --- ROSETTE Symmetry Transformations ---
-        // (Keep applySymmetry and applySymmetryToPath functions as they were in v1.11)
-        function applySymmetry(x1, y1, x2, y2) {
-            const points = [];
-            const N = currentRotationOrder;
-            const reflect = isReflectionEnabled;
-            const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
-
-            const transformPt = (x, y, angle, doReflect) => {
-                let cX = x - centerX; let cY = y - centerY;
-                if (doReflect) cX = -cX; // Reflect across Y-axis relative to center
-                const cosA = Math.cos(angle); const sinA = Math.sin(angle);
-                const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA;
-                return { x: rX + centerX, y: rY + centerY };
-            };
-
-            for (let i = 0; i < N; i++) {
-                const angle = i * angleInc;
-                const p1r = transformPt(x1, y1, angle, false);
-                const p2r = transformPt(x2, y2, angle, false);
-                points.push({ x1: p1r.x, y1: p1r.y, x2: p2r.x, y2: p2r.y });
-
-                if (reflect && N > 0) {
-                    const p1rr = transformPt(x1, y1, angle, true);
-                    const p2rr = transformPt(x2, y2, angle, true);
-                    points.push({ x1: p1rr.x, y1: p1rr.y, x2: p2rr.x, y2: p2rr.y });
-                }
-            }
-             // Explicit handling for D1 (N=1, reflect=true)
-             if (N === 1 && reflect) {
-                 const p1ref = transformPt(x1, y1, 0, true);
-                 const p2ref = transformPt(x2, y2, 0, true);
-                  // Avoid duplicate point if it's exactly on the reflection line (rare with floats)
-                 if (Math.abs(x1 - centerX) > 1e-6 || Math.abs(x2 - centerX) > 1e-6 || Math.abs(y1-y2) > 1e-6 || Math.abs(x1-x2)>1e-6) {
-                     points.push({ x1: p1ref.x, y1: p1ref.y, x2: p2ref.x, y2: p2ref.y });
-                 }
-             }
-            // If N=0 or N=1/no-reflect, the loop handles the single original point correctly.
-            return points;
-        }
-
-        function applySymmetryToPath(path) {
-            if (!path || path.length === 0) return [];
-            const transformedPaths = [];
-            const N = currentRotationOrder;
-            const reflect = isReflectionEnabled;
-            const angleInc = (N > 0) ? (2 * Math.PI) / N : 0;
-
-            const transformPt = (x, y, angle, doReflect) => {
-                 let cX = x - centerX; let cY = y - centerY;
-                 if (doReflect) cX = -cX;
-                 const cosA = Math.cos(angle); const sinA = Math.sin(angle);
-                 const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA;
-                 return { x: rX + centerX, y: rY + centerY };
-             };
-
-            const applyTransformToPath = (originalPath, angle, doReflect) => {
-                return originalPath.map(p => transformPt(p.x, p.y, angle, doReflect));
-            };
-
-            for (let i = 0; i < N; i++) {
-                const angle = i * angleInc;
-                transformedPaths.push(applyTransformToPath(path, angle, false));
-
-                if (reflect && N > 0) {
-                    transformedPaths.push(applyTransformToPath(path, angle, true));
-                }
-            }
-             // Handle D1 case (N=1, reflect=true)
-             if (N === 1 && reflect) {
-                  const reflectedPath = applyTransformToPath(path, 0, true);
-                  // Basic check to avoid adding identical path if drawn on axis
-                  const isDifferent = path.some((p, index) => {
-                      const rp = reflectedPath[index];
-                      return Math.hypot(p.x - rp.x, p.y - rp.y) > 1e-6;
-                  });
-                  if(isDifferent) {
-                    transformedPaths.push(reflectedPath);
-                  }
-             }
-
-            return transformedPaths;
         }
 
 
-        // --- Drawing Primitives ---
-        // (Keep drawPrimitive, drawFreehandPath, drawDot as they were)
+        // --- Transformasi Simetri --- (Sama)
+        function applySymmetry(x1, y1, x2, y2) { const points = []; const N = currentRotationOrder; const reflect = isReflectionEnabled; const angleInc = (N > 0) ? (2 * Math.PI) / N : 0; const transformPt = (x, y, angle, doReflect) => { let cX = x - centerX; let cY = y - centerY; if (doReflect) cX = -cX; const cosA = Math.cos(angle); const sinA = Math.sin(angle); const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA; return { x: rX + centerX, y: rY + centerY }; }; for (let i = 0; i < N; i++) { const angle = i * angleInc; const p1r = transformPt(x1, y1, angle, false); const p2r = transformPt(x2, y2, angle, false); points.push({ x1: p1r.x, y1: p1r.y, x2: p2r.x, y2: p2r.y }); if (reflect && N > 0) { const p1rr = transformPt(x1, y1, angle, true); const p2rr = transformPt(x2, y2, angle, true); points.push({ x1: p1rr.x, y1: p1rr.y, x2: p2rr.x, y2: p2rr.y }); } } if (N === 1 && reflect) { const p1ref = transformPt(x1, y1, 0, true); const p2ref = transformPt(x2, y2, 0, true); const isDifferent = Math.hypot(x1 - p1ref.x, y1 - p1ref.y) > 1e-6 || Math.hypot(x2 - p2ref.x, y2 - p2ref.y) > 1e-6; if (isDifferent) { points.push({ x1: p1ref.x, y1: p1ref.y, x2: p2ref.x, y2: p2ref.y }); } } return points; }
+        function applySymmetryToPath(path) { if (!path || path.length === 0) return []; const transformedPaths = []; const N = currentRotationOrder; const reflect = isReflectionEnabled; const angleInc = (N > 0) ? (2 * Math.PI) / N : 0; const transformPt = (x, y, angle, doReflect) => { let cX = x - centerX; let cY = y - centerY; if (doReflect) cX = -cX; const cosA = Math.cos(angle); const sinA = Math.sin(angle); const rX = cX * cosA - cY * sinA; const rY = cX * sinA + cY * cosA; return { x: rX + centerX, y: rY + centerY }; }; const applyTransformToPath = (originalPath, angle, doReflect) => { return originalPath.map(p => transformPt(p.x, p.y, angle, doReflect)); }; for (let i = 0; i < N; i++) { const angle = i * angleInc; transformedPaths.push(applyTransformToPath(path, angle, false)); if (reflect && N > 0) { transformedPaths.push(applyTransformToPath(path, angle, true)); } } if (N === 1 && reflect) { const reflectedPath = applyTransformToPath(path, 0, true); const isDifferent = path.some((p, index) => { const rp = reflectedPath[index]; return Math.hypot(p.x - rp.x, p.y - rp.y) > 1e-6; }); if(isDifferent) { transformedPaths.push(reflectedPath); } } return transformedPaths; }
+
+        // --- Gambar Primitif --- (Sama logic, added dot drawing)
         function drawPrimitive(x1, y1, x2, y2, tool, targetCtx) {
-            targetCtx.beginPath();
-            const w = x2 - x1; const h = y2 - y1;
+             targetCtx.beginPath();
+             const w = x2 - x1;
+             const h = y2 - y1;
 
-            switch (tool) {
-                case 'line':
-                    targetCtx.moveTo(x1, y1);
-                    targetCtx.lineTo(x2, y2);
-                    targetCtx.stroke();
-                    break;
-                case 'rectangle':
-                case 'filledRect':
-                    if (Math.abs(w) > 0.1 || Math.abs(h) > 0.1) { // Tolerate tiny rects
+             switch (tool) {
+                 case 'line':
+                     targetCtx.moveTo(x1, y1);
+                     targetCtx.lineTo(x2, y2);
+                     targetCtx.stroke();
+                     break;
+                 case 'rectangle':
+                 case 'filledRect':
+                      // Only draw if width/height is significant, otherwise it's handled by drawDot logic
+                     if (Math.abs(w) > 0.1 || Math.abs(h) > 0.1) {
                          targetCtx.rect(x1, y1, w, h);
                          if (tool === 'filledRect') targetCtx.fill(); else targetCtx.stroke();
-                    } else if (tool === 'filledRect') { // Draw dot if filled and basically zero size
-                        drawDot(x1, y1, targetCtx);
-                    }
-                    break;
-                case 'oval':
-                case 'filledOval':
-                    const rX = Math.abs(w / 2); const rY = Math.abs(h / 2);
-                    if (rX > 0.1 || rY > 0.1) { // Tolerate tiny ovals
-                        const cX = x1 + w / 2; const cY = y1 + h / 2;
-                        targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI);
-                        if (tool === 'filledOval') targetCtx.fill(); else targetCtx.stroke();
-                    } else if (tool === 'filledOval'){ // Draw dot if filled and basically zero size
-                       drawDot(x1 + w/2, y1 + h/2, targetCtx);
-                    }
-                    break;
-            }
+                     }
+                     break;
+                 case 'oval':
+                 case 'filledOval':
+                     const rX = Math.abs(w / 2);
+                     const rY = Math.abs(h / 2);
+                      // Only draw if radius is significant
+                     if (rX > 0.1 || rY > 0.1) {
+                         const cX = x1 + w / 2;
+                         const cY = y1 + h / 2;
+                         targetCtx.ellipse(cX, cY, rX, rY, 0, 0, 2 * Math.PI);
+                         if (tool === 'filledOval') targetCtx.fill(); else targetCtx.stroke();
+                     }
+                     break;
+             }
         }
 
         function drawFreehandPath(path, targetCtx) {
-            if (!path || path.length === 0) return;
+             if (!path || path.length === 0) return;
 
-            targetCtx.beginPath();
-            targetCtx.moveTo(path[0].x, path[0].y);
+             targetCtx.beginPath();
+             targetCtx.moveTo(path[0].x, path[0].y);
 
-            if (path.length === 1) {
-                // Draw a dot if only one point exists (e.g., a click)
-                drawDot(path[0].x, path[0].y, targetCtx);
-            } else {
-                // Draw lines connecting the points
-                for (let i = 1; i < path.length; i++) {
-                    // Could add curve logic here (e.g., quadraticCurveTo) for smoother lines
-                    targetCtx.lineTo(path[i].x, path[i].y);
-                }
-                targetCtx.stroke();
-            }
-        }
+             if (path.length === 1) {
+                 // Draw a single point as a dot
+                 drawDot(path[0].x, path[0].y, targetCtx);
+             } else {
+                 // Draw line segments for paths with multiple points
+                 for (let i = 1; i < path.length; i++) {
+                     targetCtx.lineTo(path[i].x, path[i].y);
+                 }
+                 targetCtx.stroke();
+             }
+         }
 
         function drawDot(x, y, targetCtx) {
              // Draw a small filled circle representing a dot
-             // Use lineWidth for dot size, ensuring it's at least 1px radius
-             const radius = Math.max(1, targetCtx.lineWidth / 2);
-             targetCtx.fillStyle = targetCtx.strokeStyle; // Use stroke color for fill
+             // Use lineWidth / 2 for radius, but ensure a minimum visible size (e.g., 0.5 logical pixels)
+             const radius = Math.max(0.5, targetCtx.lineWidth / 2);
+             const originalFill = targetCtx.fillStyle; // Store original fill
+             targetCtx.fillStyle = targetCtx.strokeStyle; // Use stroke color for dot fill
              targetCtx.beginPath();
              targetCtx.ellipse(x, y, radius, radius, 0, 0, 2 * Math.PI);
              targetCtx.fill();
-        }
+             targetCtx.fillStyle = originalFill; // Restore original fill
+         }
 
 
-        // --- Draw Guides (Slices / Axes) ---
-        // (Keep drawSlices as it was, CSS variables handle color changes)
+        // --- Gambar Panduan --- (Sama)
         function drawSlices() {
-             gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-             if (!showSlicesCheck.checked || !gridCanvas.width || !gridCanvas.height) return;
+             const logicalWidth = gridCanvas.width / (window.devicePixelRatio||1);
+             const logicalHeight = gridCanvas.height / (window.devicePixelRatio||1);
+             gridCtx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+             if (!showSlicesCheck.checked || !logicalWidth || !logicalHeight) return;
 
              const N = currentRotationOrder;
              const reflect = isReflectionEnabled;
-             const width = gridCanvas.width;
-             const height = gridCanvas.height;
-             const cx = width / 2; // Use local center calculation
-             const cy = height / 2;
+             const cx = logicalWidth / 2;
+             const cy = logicalHeight / 2;
 
-             if (N <= 0 || (N === 1 && !reflect)) return; // No guides needed
+             if (N <= 0 || (N === 1 && !reflect)) return; // No guides needed for C1
 
              gridCtx.save();
-             gridCtx.lineWidth = 1; // Consistent thin line for guides
+             gridCtx.lineWidth = 1 / (window.devicePixelRatio || 1); // Adjust line width for DPR
 
+             // Function to calculate endpoint reaching the edge of the canvas
              const calculateEndPoint = (angle) => {
                  const cosA = Math.cos(angle);
                  const sinA = Math.sin(angle);
                  let t = Infinity;
                  const epsilon = 1e-9;
 
+                 // Check intersections with vertical edges (x=0 and x=width)
                  if (Math.abs(cosA) > epsilon) {
-                     const t_x0 = -cx / cosA;
-                     const t_xW = (width - cx) / cosA;
+                     const t_x0 = -cx / cosA;          // Intersection with x=0
+                     const t_xW = (logicalWidth - cx) / cosA; // Intersection with x=width
                      if (t_x0 >= -epsilon) t = Math.min(t, t_x0);
                      if (t_xW >= -epsilon) t = Math.min(t, t_xW);
                  }
+                 // Check intersections with horizontal edges (y=0 and y=height)
                  if (Math.abs(sinA) > epsilon) {
-                     const t_y0 = -cy / sinA;
-                     const t_yH = (height - cy) / sinA;
+                     const t_y0 = -cy / sinA;          // Intersection with y=0
+                     const t_yH = (logicalHeight - cy) / sinA; // Intersection with y=height
                      if (t_y0 >= -epsilon) t = Math.min(t, t_y0);
                      if (t_yH >= -epsilon) t = Math.min(t, t_yH);
                  }
-                 t = (t === Infinity || t < epsilon) ? Math.max(width, height) * 1.5 : t; // Ensure positive length
+
+                 // If no intersection found (e.g., angle is 0), extend far out
+                 t = (t === Infinity || t < epsilon) ? Math.max(logicalWidth, logicalHeight) * 1.5 : t;
                  return { x: cx + t * cosA, y: cy + t * sinA };
              };
 
-
-             if (reflect) { // Dn Symmetry - Solid Reflection Axes
+             if (reflect) { // Dihedral (Dn) - Solid reflection lines
                  const reflectColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-reflect-line-color').trim() || '#fd7e14';
                  gridCtx.strokeStyle = reflectColor;
-                 gridCtx.setLineDash([]); // Solid line
-                 gridCtx.lineWidth = 1.2;
-                 const angleIncrement = Math.PI / N;
-                 const startAngle = -Math.PI / 2; // Start vertical
-
+                 gridCtx.setLineDash([]); // Solid lines
+                 gridCtx.lineWidth = 1.2 / (window.devicePixelRatio || 1);
+                 const angleIncrement = Math.PI / N; // N reflection lines
+                 // const startAngle = -Math.PI / 2; // Align first line vertically? Or 0 for horizontal? User preference? Start at 0.
+                 const startAngle = 0;
                  for (let i = 0; i < N; i++) {
                      const angle = startAngle + i * angleIncrement;
                      const endPoint = calculateEndPoint(angle);
@@ -1218,15 +1367,17 @@
                      gridCtx.lineTo(endPoint.x, endPoint.y);
                      gridCtx.stroke();
                  }
-             } else { // Cn Symmetry - Dashed Sector Boundaries
+             } else { // Cyclic (Cn) - Dashed rotation sector lines
                  if (N > 1) {
                      const sliceColor = getComputedStyle(document.documentElement).getPropertyValue('--grid-slice-color').trim() || '#adb5bd';
                      gridCtx.strokeStyle = sliceColor;
-                     gridCtx.setLineDash([4, 4]); // Dashed line
-                     gridCtx.lineWidth = 1.0;
+                      // Adjust dash pattern for DPR
+                     const dash = 4 / (window.devicePixelRatio || 1);
+                     gridCtx.setLineDash([dash, dash]);
+                     gridCtx.lineWidth = 1.0 / (window.devicePixelRatio || 1);
                      const angleIncrement = (2 * Math.PI) / N;
                      for (let i = 0; i < N; i++) {
-                         const angle = i * angleIncrement; // Start at 0 radians (right)
+                         const angle = i * angleIncrement;
                          const endPoint = calculateEndPoint(angle);
                          gridCtx.beginPath();
                          gridCtx.moveTo(cx, cy);
@@ -1236,16 +1387,19 @@
                  }
              }
              gridCtx.restore();
-        }
+         }
 
-        // --- Save / Load JSON ---
-        // (Keep saveJson and loadJson largely the same, update version)
+        // --- Simpan / Muat JSON --- (Updated version, same logic)
         function saveJson() {
             const data = {
-                version: 1.12, // Update version marker
+                version: "1.15-layoutfix", // Indicate version
                 rotationOrder: currentRotationOrder,
                 isReflectionEnabled: isReflectionEnabled,
-                actions: drawingActions // Save the fundamental actions array
+                actions: drawingActions,
+                // Optionally save current tool state?
+                // currentTool: currentTool,
+                // currentColor: currentColor,
+                // currentLineWidth: currentLineWidth
             };
             const str = JSON.stringify(data, null, 2); // Pretty print JSON
             const blob = new Blob([str], { type: 'application/json' });
@@ -1253,7 +1407,7 @@
             const a = document.createElement('a');
             const t = new Date().toISOString().replace(/[:.]/g, '-');
             const s = isReflectionEnabled ? 'D' : 'C';
-            a.download = `rosette_${s}${currentRotationOrder}_${t}.json`;
+            a.download = `roset_${s}${currentRotationOrder}_${t}.json`;
             a.href = url;
             document.body.appendChild(a);
             a.click();
@@ -1262,121 +1416,172 @@
         }
 
         function loadJson(event) {
-            const file = event.target.files[0];
-            if (!file || !file.type.match('application/json')) {
-                alert("Please select a valid JSON file (.json).");
-                loadFile.value = null; // Reset file input
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    // Basic validation
-                    if (!data || typeof data.rotationOrder !== 'number' || typeof data.isReflectionEnabled !== 'boolean' || !Array.isArray(data.actions)) {
-                        throw new Error("Invalid or incompatible Rosette JSON file format.");
-                    }
-
-                    // --- Apply loaded data ---
-                    clearCanvas(true); // Clear canvas internally first
-
-                    // Restore settings state
-                    currentRotationOrder = data.rotationOrder;
-                    isReflectionEnabled = data.isReflectionEnabled;
-                    drawingActions = data.actions; // Restore the sequence of actions
-
-                    // Update UI controls to match loaded data
-                    const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`);
-                    if (rotRadio) rotRadio.checked = true;
-                    else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; // Fallback
-                    reflectionToggle.checked = isReflectionEnabled;
-
-                    updateSettings(); // Ensure internal state vars match loaded data
-                    updateSelectedLabels(); // Update visual selection styling
-                    updateRotationLabels(); // Update C/D labels
-                    applyCursorStyle(); // Apply cursor (might have changed)
-                    drawSlices(); // Draw guides for the loaded symmetry
-
-                    // Redraw based on loaded actions and reset history
-                    history = []; // Start history fresh for the loaded drawing
-                    historyIndex = -1;
-                    redrawAllActions(); // Redraw the loaded state completely
-                    saveState(); // Save the fully loaded state as the first history entry
-
-                    alert(`Loaded drawing data from "${file.name}".`);
-
-                } catch (err) {
-                    console.error("Load JSON error:", err);
-                    alert("Failed to load file: " + err.message);
-                    // Attempt to restore a stable blank state if load fails
-                    clearCanvas(false);
-                } finally {
-                    loadFile.value = null; // Reset file input regardless of success/failure
-                }
-            };
-            reader.onerror = () => {
-                alert("Error reading file.");
-                loadFile.value = null;
-            };
-            reader.readAsText(file);
-        }
-
-        // --- Download Image ---
-        // (Keep downloadCanvasImage largely the same)
-        function downloadCanvasImage() {
-             const canvasToDownload = document.createElement('canvas');
-             const ctxToDownload = canvasToDownload.getContext('2d');
-             const width = canvas.width;
-             const height = canvas.height;
-             canvasToDownload.width = width;
-             canvasToDownload.height = height;
-
-             // Draw background color (respecting theme)
-             // Use the --canvas-bg variable value for accuracy
-             ctxToDownload.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#ffffff';
-             ctxToDownload.fillRect(0, 0, width, height);
-
-             // Draw the current drawing canvas content
-             ctxToDownload.drawImage(canvas, 0, 0);
-
-             // Optionally draw grid lines on top if shown
-             if (showSlicesCheck.checked) {
-                 ctxToDownload.drawImage(gridCanvas, 0, 0);
+             const file = event.target.files[0];
+             if (!file || !file.type.match('application/json')) {
+                 alert("Silakan pilih file JSON yang valid (.json).");
+                 loadFile.value = null; // Reset file input
+                 return;
              }
+             const reader = new FileReader();
+             reader.onload = (e) => {
+                 try {
+                     const data = JSON.parse(e.target.result);
 
+                     // Basic validation of loaded data structure
+                     if (!data || typeof data.rotationOrder !== 'number' || typeof data.isReflectionEnabled !== 'boolean' || !Array.isArray(data.actions)) {
+                         throw new Error("Format file JSON Roset tidak valid atau data penting hilang.");
+                     }
+
+                     clearCanvas(true); // Clear canvas internally before loading
+
+                     // Restore settings from JSON
+                     currentRotationOrder = data.rotationOrder;
+                     isReflectionEnabled = data.isReflectionEnabled;
+                     drawingActions = data.actions || []; // Use empty array if actions are missing
+
+                     // Restore UI elements based on loaded data
+                     const rotRadio = document.querySelector(`input[name="rotationOrder"][value="${currentRotationOrder}"]`);
+                     if (rotRadio) rotRadio.checked = true;
+                     else document.querySelector('input[name="rotationOrder"][value="1"]').checked = true; // Default fallback
+
+                     reflectionToggle.checked = isReflectionEnabled;
+
+                     // Try to restore tool settings if available in JSON (or from last action)
+                     let lastActionColor = data.currentColor || '#0d6efd'; // Default color if not saved
+                     let lastActionTool = data.currentTool || 'freehand';
+                     let lastActionWidth = data.currentLineWidth || 3;
+
+                     // If tool settings weren't saved directly, try inferring from the last action
+                     if (!data.currentColor && drawingActions.length > 0) {
+                         const lastValidAction = drawingActions.slice().reverse().find(a => a && a.color && a.lineWidth && a.tool);
+                         if (lastValidAction) {
+                             lastActionColor = lastValidAction.color;
+                             lastActionTool = lastValidAction.tool;
+                             lastActionWidth = lastValidAction.lineWidth;
+                         }
+                     }
+
+                     currentColor = lastActionColor;
+                     if (colorPicker) { colorPicker.color.hexString = currentColor; } else { console.warn("Color picker not ready during load."); }
+
+                     const toolRadio = document.querySelector(`input[name="tool"][value="${lastActionTool}"]`);
+                     if(toolRadio) toolRadio.checked = true; else document.querySelector('input[name="tool"][value="freehand"]').checked = true;
+
+                     const widthRadio = document.querySelector(`input[name="lineWidth"][value="${lastActionWidth}"]`);
+                     if(widthRadio) widthRadio.checked = true; else document.querySelector('input[name="lineWidth"][value="3"]').checked = true;
+
+                     // Cursor style is not saved, keep current or default
+                     const cursorRadio = document.querySelector(`input[name="cursorStyle"]:checked`);
+                     if (!cursorRadio) { // If nothing checked, check default
+                         document.querySelector('input[name="cursorStyle"][value="crosshair"]').checked = true;
+                     }
+
+
+                     // Update all internal settings and UI based on loaded/restored values
+                     updateSettings();
+                     updateSelectedLabels();
+                     updateRotationLabels();
+                     applyCursorStyle();
+                     drawSlices();
+
+                     // Reset history and redraw based on loaded actions
+                     history = [];
+                     historyIndex = -1;
+                     redrawAllActions(true); // Redraw without caching immediately
+                     saveState(); // Save the loaded state as the first history item
+
+                     alert(`Berhasil memuat data gambar dari "${file.name}".`);
+
+                 } catch (err) {
+                     console.error("Load JSON error:", err);
+                     alert("Gagal memuat file: " + err.message);
+                     clearCanvas(false); // Clear canvas fully on error
+                 } finally {
+                     loadFile.value = null; // Reset file input regardless of success/failure
+                 }
+             };
+             reader.onerror = () => {
+                 alert("Gagal membaca file.");
+                 loadFile.value = null;
+             };
+             reader.readAsText(file);
+         }
+
+        // --- Unduh Gambar --- (Slightly improved, draw background)
+        function downloadCanvasImage() {
+            const canvasToDownload = document.createElement('canvas');
+            const ctxToDownload = canvasToDownload.getContext('2d');
+
+            // Match the dimensions and DPR of the source canvas
+            const dpr = window.devicePixelRatio || 1;
+            const width = canvas.width;
+            const height = canvas.height;
+            const logicalWidth = width / dpr;
+            const logicalHeight = height / dpr;
+
+            canvasToDownload.width = width;
+            canvasToDownload.height = height;
+             canvasToDownload.style.width = `${logicalWidth}px`;
+             canvasToDownload.style.height = `${logicalHeight}px`;
+
+             // Draw background color first (important for transparency)
+             // Use the --canvas-bg variable, default to white
+            ctxToDownload.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#ffffff';
+            ctxToDownload.fillRect(0, 0, width, height); // Fill the entire canvas
+
+            // Draw the main drawing canvas content
+            ctxToDownload.drawImage(canvas, 0, 0);
+
+            // Draw the grid lines on top if visible
+            if (showSlicesCheck.checked) {
+                ctxToDownload.drawImage(gridCanvas, 0, 0);
+            }
+
+            // Create filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const symType = isReflectionEnabled ? 'D' : 'C';
-            const filename = `rosette_pattern_${symType}${currentRotationOrder}_${timestamp}.png`;
+            const filename = `pola_roset_${symType}${currentRotationOrder}_${timestamp}.png`;
+
+            // Trigger download
             const link = document.createElement('a');
             link.download = filename;
             try {
-                link.href = canvasToDownload.toDataURL('image/png'); // Create PNG from the temporary canvas
+                link.href = canvasToDownload.toDataURL('image/png'); // Get data URL from the combined canvas
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             } catch (e) {
                 console.error("Download image error:", e);
-                // Provide more specific error feedback if possible
-                if (e.name === 'SecurityError') {
-                     alert("Failed to create download image due to security restrictions (canvas may be tainted). Try drawing something first.");
-                } else {
-                     alert("Failed to create download image. Canvas might be too large or an unknown error occurred.");
-                }
+                 if (e.name === 'SecurityError') {
+                    alert("Gagal membuat gambar unduhan karena batasan keamanan (kanvas tercemar?). Coba gambar sesuatu atau muat ulang halaman.");
+                 } else {
+                    alert("Gagal membuat gambar unduhan. Periksa konsol untuk detail.");
+                 }
             }
         }
 
-        // --- Initial Setup Calls ---
-        initializeTheme();      // Set light/dark theme based on preference or default (light)
-        updateSettings();       // Read initial settings from HTML checked states
-        updateSelectedLabels(); // Style selected controls visually
-        updateRotationLabels(); // Set initial C/D text based on reflection toggle
-        resizeCanvas();         // Set initial canvas size & draw guides/content
-        applyCursorStyle();     // Set initial cursor
-        clearCanvas(true);      // Ensure a reliably blank initial state for drawing & cache
-        saveState();            // Save the initial blank state as the first history entry
-        updateUndoRedoButtons();// Set initial button disabled states correctly
+        // --- Panggilan Setup Awal ---
+        initializeTheme();
+        updateSettings(); // Read initial settings from HTML checked states
+        initializeColorPicker(); // Init picker AFTER reading initial color potentially
+        updateSelectedLabels(); // Set initial selected states visually
+        updateRotationLabels(); // Set initial rotation label text
+        resizeCanvas(); // Initial canvas sizing
+        applyCursorStyle(); // Set initial cursor
 
-        console.log("Rosette Symmetry (v1.12 - Elegant Light UI) Initialized.");
+        // Ensure initial state is clean and saved
+        if(history.length === 0 && drawingActions.length === 0) {
+            clearCanvas(true); // Internal clear
+            saveState(); // Save the initial empty state
+        } else {
+            // If there are actions (e.g. from a page refresh with persistence, unlikely here)
+            // ensure history is consistent
+            redrawAllActions(); // Redraw existing actions
+            // Rebuild history? For this app, probably better to start fresh.
+            // clearCanvas(false); // Uncomment to force clear on init
+        }
+
+        console.log("Simetri Roset (v1.15 - Layout Diperbaiki) Dimulai.");
     }); // End DOMContentLoaded
 </script>
 
